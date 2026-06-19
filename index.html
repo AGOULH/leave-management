@@ -1,0 +1,1511 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>نظام إدارة الإجازات — بنك الدم | مختبر الدمام</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;900&family=Tajawal:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root {
+  --bg: #07111f;
+  --surface: #0e1d30;
+  --surface2: #152540;
+  --surface3: #1c2f50;
+  --border: #243a5e;
+  --accent: #e63946;
+  --accent3: #2ec4b6;
+  --text: #e0ecff;
+  --text2: #7a9fc2;
+  --text3: #3d5a7a;
+  --success: #2ec4b6;
+  --warning: #f4a261;
+  --danger: #e63946;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;direction:rtl;font-size:16px;}
+
+/* HEADER */
+.header{background:linear-gradient(135deg,#0a1828 0%,#160a20 60%,#091525 100%);border-bottom:1px solid var(--border);padding:16px 22px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:100;box-shadow:0 4px 24px rgba(0,0,0,0.5);}
+.hicon{width:50px;height:50px;background:linear-gradient(135deg,#e63946,#9d0208);border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:23px;box-shadow:0 4px 14px rgba(230,57,70,0.4);flex-shrink:0;}
+.hinfo h1{font-size:1.2rem;font-weight:800;}
+.hinfo p{font-size:0.82rem;color:var(--text2);}
+.hbadge{margin-right:auto;background:rgba(46,196,182,0.12);border:1px solid rgba(46,196,182,0.3);color:var(--success);padding:5px 14px;border-radius:20px;font-size:0.82rem;font-weight:700;}
+
+/* TABS */
+.nav{background:var(--surface);border-bottom:1px solid var(--border);display:flex;overflow-x:auto;scrollbar-width:none;padding:0 12px;}
+.nav::-webkit-scrollbar{display:none;}
+.tab{background:none;border:none;border-bottom:3px solid transparent;color:var(--text2);padding:14px 18px;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.92rem;font-weight:700;white-space:nowrap;transition:all .2s;display:flex;align-items:center;gap:6px;}
+.tab:hover{color:var(--text);}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+
+/* MAIN */
+.main{padding:18px 16px;max-width:1100px;margin:0 auto;}
+.pane{display:none;}.pane.active{display:block;}
+
+/* CARD */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:16px;}
+.sec-title{font-size:1rem;font-weight:800;margin-bottom:16px;display:flex;align-items:center;gap:7px;padding-bottom:10px;border-bottom:1px solid var(--border);}
+
+/* CALENDAR */
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.cal-nav{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:8px 18px;border-radius:9px;cursor:pointer;font-size:1.05rem;transition:all .2s;}
+.cal-nav:hover{border-color:var(--accent3);}
+.cal-title{font-size:1.15rem;font-weight:800;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+.cal-dh{text-align:center;font-size:.78rem;color:var(--text3);padding:7px 2px;font-weight:700;}
+.cal-day{background:var(--surface2);border:1px solid var(--border);border-radius:7px;min-height:72px;padding:5px;cursor:pointer;transition:border-color .2s;overflow:hidden;}
+.cal-day:hover{border-color:var(--accent3);}
+.cal-day.empty{background:transparent;border-color:transparent;}
+.cal-day.today{border-color:var(--accent);}
+.cal-dn{font-size:.82rem;font-weight:800;color:var(--text2);display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;}
+.cal-day.today .cal-dn{color:var(--accent);}
+.cdot{width:8px;height:8px;border-radius:50%;display:inline-block;margin:1px;}
+.cal-names{font-size:.65rem;color:var(--text3);line-height:1.3;}
+
+/* LEGEND */
+.legend{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;}
+.leg-item{display:flex;align-items:center;gap:5px;font-size:.8rem;color:var(--text2);}
+.leg-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+
+/* FILTER BAR */
+.fbar{display:flex;gap:9px;margin-bottom:14px;flex-wrap:wrap;}
+.fsel,.finp{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:9px 13px;border-radius:9px;font-family:'Cairo',sans-serif;font-size:.9rem;outline:none;transition:border-color .2s;}
+.fsel:focus,.finp:focus{border-color:var(--accent3);}
+.finp{flex:1;min-width:120px;}
+.fsel option{background:var(--surface2);}
+
+/* TABLE */
+.ltable{width:100%;border-collapse:collapse;}
+.ltable th{background:var(--surface2);color:var(--text2);font-size:.82rem;font-weight:800;padding:11px 13px;text-align:right;border-bottom:1px solid var(--border);}
+.ltable td{padding:11px 13px;font-size:.88rem;border-bottom:1px solid rgba(36,58,94,.5);vertical-align:middle;}
+.ltable tr:hover td{background:rgba(255,255,255,.02);}
+
+/* BADGES */
+.badge{display:inline-block;padding:3px 11px;border-radius:20px;font-size:.78rem;font-weight:800;}
+.b-annual{background:rgba(46,196,182,.15);color:#2ec4b6;}
+.b-sick{background:rgba(230,57,70,.15);color:#e63946;}
+.b-emergency{background:rgba(244,162,97,.15);color:#f4a261;}
+.b-maternity{background:rgba(168,218,220,.15);color:#a8dadc;}
+.b-study{background:rgba(162,210,255,.15);color:#a2d2ff;}
+.b-unpaid{background:rgba(130,130,150,.15);color:#9aaccb;}
+.b-shift{background:rgba(200,170,255,.15);color:#c8aaff;}
+.b-assignment{background:rgba(255,220,120,.15);color:#ffd878;}
+.b-hajj{background:rgba(255,200,100,.15);color:#ffc864;}
+.b-sick_ext{background:rgba(255,120,120,.15);color:#ff7878;}
+.b-compassionate{background:rgba(180,200,255,.15);color:#b4c8ff;}
+.b-remote{background:rgba(100,220,160,.15);color:#64dc9a;}
+
+/* ACTIONS */
+.abtn{background:none;border:1px solid var(--border);color:var(--text2);padding:5px 11px;border-radius:7px;cursor:pointer;font-size:.8rem;font-family:'Cairo',sans-serif;transition:all .2s;margin-right:3px;}
+.abtn:hover{border-color:var(--accent3);color:var(--text);}
+.abtn.del:hover{border-color:var(--danger);color:var(--danger);}
+
+/* CONFLICT */
+.conf-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:13px 16px;margin-bottom:9px;display:flex;align-items:flex-start;gap:12px;}
+.csev{width:10px;height:10px;border-radius:50%;margin-top:5px;flex-shrink:0;}
+.sh{background:#e63946;box-shadow:0 0 7px rgba(230,57,70,.5);}
+.sm{background:#f4a261;box-shadow:0 0 7px rgba(244,162,97,.5);}
+.sl{background:#2ec4b6;box-shadow:0 0 7px rgba(46,196,182,.5);}
+
+/* BUSY CHART */
+.brow{display:flex;align-items:center;gap:10px;margin-bottom:9px;}
+.bdate{font-size:.82rem;color:var(--text2);width:120px;flex-shrink:0;text-align:right;}
+.bbg{flex:1;background:var(--surface3);border-radius:4px;height:22px;overflow:hidden;}
+.bbar{height:100%;border-radius:4px;display:flex;align-items:center;padding-right:8px;font-size:.75rem;font-weight:800;color:#fff;}
+.bcnt{font-size:.82rem;width:24px;text-align:center;}
+
+/* STATS */
+.sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:11px;margin-bottom:16px;}
+.scard{background:var(--surface2);border:1px solid var(--border);border-radius:11px;padding:16px;display:flex;align-items:center;gap:12px;}
+.sicon{font-size:1.7rem;}
+.sval{font-size:1.4rem;font-weight:900;}
+.slabel{font-size:.78rem;color:var(--text2);}
+
+.bchart{display:flex;flex-direction:column;gap:8px;}
+.brow2{display:flex;align-items:center;gap:10px;}
+.bname{width:85px;font-size:.82rem;color:var(--text2);text-align:right;flex-shrink:0;}
+.bbg2{flex:1;background:var(--surface3);border-radius:4px;height:24px;overflow:hidden;}
+.bfill{height:100%;border-radius:4px;transition:width .8s ease;display:flex;align-items:center;padding-right:8px;font-size:.72rem;font-weight:800;color:#fff;min-width:30px;}
+.bval{font-size:.82rem;color:var(--text2);width:32px;text-align:left;}
+
+.tdist{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;}
+.titem{background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:13px;text-align:center;}
+.tcount{font-size:1.4rem;font-weight:900;margin-bottom:4px;}
+.tname{font-size:.78rem;color:var(--text2);}
+
+.ol-grid{display:flex;flex-wrap:wrap;gap:8px;}
+.ol-chip{background:var(--surface3);border:1px solid var(--border);border-radius:20px;padding:6px 14px;font-size:.85rem;font-weight:700;display:flex;align-items:center;gap:7px;}
+
+/* EMPLOYEE PROFILE */
+.emp-profile-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:13px;}
+.emp-pcard{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;cursor:pointer;transition:border-color .2s;}
+.emp-pcard:hover{border-color:var(--accent3);}
+.emp-ph{display:flex;align-items:center;gap:11px;margin-bottom:11px;}
+.emp-avatar{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:900;color:#fff;flex-shrink:0;}
+.emp-pname{font-size:1rem;font-weight:800;}
+.emp-psub{font-size:.75rem;color:var(--text2);}
+.emp-pstats{display:flex;gap:9px;flex-wrap:wrap;}
+.ep-stat{background:var(--surface3);border-radius:7px;padding:6px 11px;font-size:.75rem;text-align:center;}
+.ep-sval{font-size:.95rem;font-weight:900;display:block;}
+.ep-slabel{color:var(--text2);}
+
+/* PROFILE MODAL */
+.pmodal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:300;align-items:center;justify-content:center;padding:16px;}
+.pmodal.open{display:flex;}
+.pmodal-inner{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:24px;width:100%;max-width:580px;max-height:90vh;overflow-y:auto;}
+.pmodal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.pm-title{font-size:1.05rem;font-weight:800;}
+.pm-close{background:var(--surface2);border:1px solid var(--border);color:var(--text);width:34px;height:34px;border-radius:8px;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;}
+.pm-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:14px;}
+.pm-stat{background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:11px;text-align:center;}
+.pm-sval{font-size:1.2rem;font-weight:900;}
+.pm-slabel{font-size:.72rem;color:var(--text2);}
+.pm-leavelist{display:flex;flex-direction:column;gap:7px;}
+.pm-lrow{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 13px;display:flex;align-items:center;justify-content:space-between;font-size:.85rem;}
+.pm-type-dist{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:13px;}
+
+/* FORM */
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:13px;}
+@media(max-width:560px){.fgrid{grid-template-columns:1fr;}}
+.fg{display:flex;flex-direction:column;gap:6px;}
+.flabel{font-size:.85rem;color:var(--text2);font-weight:700;}
+.fc{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:10px 13px;border-radius:9px;font-family:'Cairo',sans-serif;font-size:.92rem;outline:none;transition:border-color .2s;width:100%;}
+.fc:focus{border-color:var(--accent3);}
+.fc option{background:var(--surface2);}
+.ffull{grid-column:1/-1;}
+.dprev{background:var(--surface3);border:1px solid var(--border);border-radius:9px;padding:10px 13px;font-size:.9rem;color:var(--accent3);font-weight:800;text-align:center;}
+
+.btn-p{background:linear-gradient(135deg,var(--accent),#9d0208);border:none;color:#fff;padding:12px 26px;border-radius:11px;font-family:'Cairo',sans-serif;font-size:.95rem;font-weight:800;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(230,57,70,.3);}
+.btn-p:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(230,57,70,.4);}
+.btn-s{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:12px 20px;border-radius:11px;font-family:'Cairo',sans-serif;font-size:.95rem;font-weight:700;cursor:pointer;transition:all .2s;}
+.btn-s:hover{border-color:var(--accent3);}
+
+/* EMPLOYEES MANAGE */
+.emp-list{display:flex;flex-direction:column;gap:8px;}
+.emp-item{background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:11px 15px;display:flex;align-items:center;justify-content:space-between;font-size:.92rem;font-weight:700;}
+.add-row{display:flex;gap:8px;margin-top:11px;}
+.add-row .fc{flex:1;}
+
+/* EDIT MODAL */
+.emodal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;align-items:center;justify-content:center;padding:16px;}
+.emodal.open{display:flex;}
+.emodal-inner{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:24px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;}
+.emodal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+
+/* TOAST */
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--surface2);border:1px solid var(--accent3);color:var(--accent3);padding:12px 24px;border-radius:11px;font-size:.92rem;font-weight:700;z-index:500;transition:transform .3s;box-shadow:0 4px 18px rgba(0,0,0,.4);}
+.toast.show{transform:translateX(-50%) translateY(0);}
+.toast.err{border-color:var(--danger);color:var(--danger);}
+
+.empty{text-align:center;padding:36px 16px;color:var(--text3);font-size:.9rem;}
+.empty .ei{font-size:2.4rem;margin-bottom:9px;}
+.divider{border:none;border-top:1px solid var(--border);margin:14px 0;}
+
+/* DATE PICKER */
+.date-picker-wrap{background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:10px 14px;cursor:pointer;display:flex;align-items:center;gap:10px;transition:border-color .2s;user-select:none;}
+.date-picker-wrap:hover{border-color:var(--accent3);}
+.dp-icon{font-size:1.2rem;flex-shrink:0;}
+.dp-val{font-size:.92rem;color:var(--text);flex:1;}
+.dp-val.placeholder{color:var(--text3);}
+.cp-dh{text-align:center;font-size:.85rem;color:#3d5a7a;padding:7px 2px;font-weight:800;}
+.cp-day{background:#152540;border:1px solid transparent;border-radius:10px;padding:8px 4px;text-align:center;cursor:pointer;font-size:.95rem;font-weight:700;color:#7a9fc2;transition:all .15s;min-height:54px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;}
+.cp-day:hover{background:#1c2f50;border-color:#2ec4b6;color:#e0ecff;}
+.cp-day.selected{background:#e63946;color:#fff;border-color:#e63946;}
+.cp-day.today{border-color:#f4a261;color:#f4a261;}
+.cp-day.selected.today{background:#e63946;color:#fff;}
+.cp-day.other-month{opacity:.3;}
+.cp-day.in-range{background:rgba(46,196,182,.15);color:#e0ecff;border-color:rgba(46,196,182,.3);}
+
+/* DATE PICKER */
+.leave-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 18px;margin-bottom:12px;transition:border-color .2s;}
+.leave-card:hover{border-color:var(--border);box-shadow:0 2px 16px rgba(0,0,0,.25);}
+.lc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:10px;flex-wrap:wrap;}
+.lc-emp{display:flex;align-items:center;gap:10px;}
+.lc-avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.95rem;font-weight:900;color:#fff;flex-shrink:0;}
+.lc-name{font-size:1rem;font-weight:800;}
+.lc-actions{display:flex;gap:8px;flex-shrink:0;}
+.lc-edit{background:rgba(46,196,182,.12);border:1px solid rgba(46,196,182,.35);color:var(--success);padding:8px 18px;border-radius:10px;cursor:pointer;font-family:'Cairo',sans-serif;font-size:.85rem;font-weight:800;transition:all .2s;white-space:nowrap;}
+.lc-edit:hover{background:rgba(46,196,182,.22);border-color:var(--success);}
+.lc-del{background:rgba(230,57,70,.1);border:1px solid rgba(230,57,70,.3);color:var(--danger);padding:8px 18px;border-radius:10px;cursor:pointer;font-family:'Cairo',sans-serif;font-size:.85rem;font-weight:800;transition:all .2s;white-space:nowrap;}
+.lc-del:hover{background:rgba(230,57,70,.2);border-color:var(--danger);}
+.lc-body{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;padding-top:12px;border-top:1px solid var(--border);}
+.lc-field{background:var(--surface2);border-radius:9px;padding:9px 12px;}
+.lc-flabel{font-size:.7rem;color:var(--text3);margin-bottom:3px;font-weight:700;}
+.lc-fval{font-size:.88rem;font-weight:700;color:var(--text);}
+.lc-note{grid-column:1/-1;background:var(--surface2);border-radius:9px;padding:9px 12px;}
+
+@media(max-width:768px){.cal-day{min-height:56px;}.sgrid{grid-template-columns:1fr 1fr;}.pm-stats{grid-template-columns:repeat(2,1fr);}.lc-actions{width:100%;}.lc-edit,.lc-del{flex:1;text-align:center;}}
+</style>
+</head>
+<body>
+
+<!-- PAGE LOADER -->
+<div id="pageLoader" style="position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;">
+  <div style="font-size:2.5rem;animation:spin 1.2s linear infinite">🩸</div>
+  <div style="font-size:1rem;font-weight:700;color:var(--text2)">جارٍ تحميل البيانات...</div>
+</div>
+<style>@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}</style>
+
+<!-- SETUP BANNER -->
+<div id="setupBanner" style="display:none;background:rgba(244,162,97,.12);border:1px solid rgba(244,162,97,.4);color:#f4a261;padding:12px 18px;font-size:.85rem;font-weight:700;text-align:center;direction:rtl;line-height:1.8;">
+  ⚙️ <strong>وضع تجريبي — البيانات محلية فقط</strong><br>
+  لتفعيل المزامنة بين الأجهزة: افتح <a href="https://jsonbin.io" target="_blank" style="color:#ffd878">jsonbin.io</a>، أنشئ حساباً مجانياً، وأضف BIN_ID و API_KEY في بداية كود الـ JavaScript
+</div>
+
+<div id="appRoot" style="display:none">
+
+<div class="header">
+  <div class="hicon">🩸</div>
+  <div class="hinfo">
+    <h1>نظام إدارة الإجازات</h1>
+    <p>بنك الدم — مختبر الدمام الإقليمي</p>
+  </div>
+  <span id="syncIcon" style="font-size:1.1rem;margin-left:8px;cursor:help;" title="حالة المزامنة السحابية">☁️</span>
+  <div class="hbadge" id="empBadge">13 موظف</div>
+</div>
+
+<div class="nav">
+  <button class="tab active" onclick="sw('calendar',this)">📅 التقويم</button>
+  <button class="tab" onclick="sw('list',this)">📋 القائمة</button>
+  <button class="tab" onclick="sw('conflicts',this)">⚠️ التداخلات</button>
+  <button class="tab" onclick="sw('stats',this)">📊 الإحصائيات</button>
+  <button class="tab" onclick="sw('profiles',this)">👤 الموظفون</button>
+  <button class="tab" onclick="sw('add',this)">➕ إضافة إجازة</button>
+  <button class="tab" onclick="sw('manage',this)">⚙️ الإعدادات</button>
+</div>
+
+<div class="main">
+
+<!-- CALENDAR -->
+<div id="pane-calendar" class="pane active">
+  <div class="card">
+    <div class="cal-header">
+      <button class="cal-nav" onclick="prevM()">→</button>
+      <div class="cal-title" id="calTitle"></div>
+      <button class="cal-nav" onclick="nextM()">←</button>
+    </div>
+    <!-- هجري / ميلادي -->
+    <div style="display:flex;gap:8px;margin-bottom:12px;justify-content:center;">
+      <button id="calModeAr" onclick="calMode='ar';renderCal()" style="background:var(--accent);border:1px solid var(--accent);color:#fff;padding:6px 22px;border-radius:20px;cursor:pointer;font-family:'Cairo',sans-serif;font-size:.88rem;font-weight:800;transition:all .2s;">🗓️ هجري</button>
+      <button id="calModeEn" onclick="calMode='en';renderCal()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text2);padding:6px 22px;border-radius:20px;cursor:pointer;font-family:'Cairo',sans-serif;font-size:.88rem;font-weight:800;transition:all .2s;">📅 ميلادي</button>
+    </div>
+    <!-- فلتر بحث بفترة زمنية -->
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:11px;padding:12px 16px;margin-bottom:14px;">
+      <div style="font-size:.88rem;font-weight:800;color:var(--text2);margin-bottom:10px;">🔍 فلتر — عرض من هم في إجازة خلال فترة</div>
+      <div style="display:flex;gap:9px;flex-wrap:wrap;align-items:flex-end;">
+        <div style="display:flex;flex-direction:column;gap:5px;flex:1;min-width:140px;">
+          <label style="font-size:.78rem;color:var(--text3);font-weight:700;">من تاريخ</label>
+          <div class="date-picker-wrap" onclick="openCal('calFStart')" style="padding:9px 13px;">
+            <span class="dp-icon">📅</span>
+            <span class="dp-val placeholder" id="calFStart-display">اضغط لاختيار</span>
+            <input type="hidden" id="calFStart">
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px;flex:1;min-width:140px;">
+          <label style="font-size:.78rem;color:var(--text3);font-weight:700;">إلى تاريخ</label>
+          <div class="date-picker-wrap" onclick="openCal('calFEnd')" style="padding:9px 13px;">
+            <span class="dp-icon">📅</span>
+            <span class="dp-val placeholder" id="calFEnd-display">اضغط لاختيار</span>
+            <input type="hidden" id="calFEnd">
+          </div>
+        </div>
+        <button onclick="clearCalFilter()" style="background:var(--surface3);border:1px solid var(--border);color:var(--text2);padding:9px 16px;border-radius:9px;cursor:pointer;font-family:'Cairo',sans-serif;font-size:.85rem;font-weight:700;white-space:nowrap;">✕ إلغاء الفلتر</button>
+      </div>
+      <div id="calFilterResult" style="margin-top:10px;font-size:.85rem;color:var(--accent3);font-weight:700;"></div>
+    </div>
+    <!-- دليل الألوان والعطل -->
+    <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:12px;font-size:.78rem;">
+      <span style="display:flex;align-items:center;gap:5px;color:#f4a261"><span style="width:12px;height:12px;background:rgba(244,162,97,.3);border:1px solid rgba(244,162,97,.5);border-radius:3px;display:inline-block"></span>عطلة رسمية</span>
+      <span style="display:flex;align-items:center;gap:5px;color:var(--accent)"><span style="width:12px;height:12px;border:2px solid var(--accent);border-radius:3px;display:inline-block"></span>اليوم الحالي</span>
+      <span style="display:flex;align-items:center;gap:5px;color:var(--text2)">⚠️ تداخل إجازات</span>
+    </div>
+    <div class="legend" id="calLegend"></div>
+    <div class="cal-grid" id="calGrid"></div>
+  </div>
+</div>
+
+<!-- LIST -->
+<div id="pane-list" class="pane">
+
+  <!-- فلتر سريع -->
+  <div class="card" style="padding:14px 18px;">
+    <div class="fbar" style="margin-bottom:0">
+      <select class="fsel" id="fName" onchange="renderList()" style="flex:1">
+        <option value="">👤 كل الموظفين</option>
+      </select>
+      <select class="fsel" id="fType" onchange="renderList()" style="flex:1">
+        <option value="">🗂️ كل الأنواع</option>
+        <option value="annual">سنوية</option>
+        <option value="sick">مرضية</option>
+        <option value="emergency">اضطراري</option>
+        <option value="maternity">أمومة</option>
+        <option value="study">دراسية</option>
+        <option value="unpaid">بدون راتب</option>
+        <option value="shift">بدل مناوبة</option>
+        <option value="assignment">بدل تكليف</option>
+        <option value="hajj">إجازة حج</option>
+        <option value="sick_ext">مرضية مطولة</option>
+        <option value="compassionate">إجازة وفاة</option>
+        <option value="remote">عمل عن بُعد</option>
+        <option value="compensatory">تعويضية</option>
+        <option value="patient_escort">مرافقة مريض</option>
+        <option value="absence_comp">بدل أيام غياب</option>
+      </select>
+      <div id="listCount" style="font-size:.82rem;color:var(--text2);white-space:nowrap;align-self:center;"></div>
+    </div>
+  </div>
+
+  <!-- بطاقات الإجازات -->
+  <div id="leaveCards"></div>
+  <div id="listEmpty" class="empty" style="display:none"><div class="ei">📭</div>لا توجد إجازات</div>
+
+</div>
+
+<!-- CONFLICTS -->
+<div id="pane-conflicts" class="pane">
+  <div class="card">
+    <div class="sec-title">⚠️ أيام التداخل</div>
+    <div id="confList"></div>
+  </div>
+  <div class="card">
+    <div class="sec-title">📊 أكثر الأيام ازدحاماً</div>
+    <div id="busyChart"></div>
+  </div>
+</div>
+
+<!-- STATS -->
+<div id="pane-stats" class="pane">
+  <div class="sgrid" id="statsCards"></div>
+  <div class="card">
+    <div class="sec-title">📊 إجمالي أيام الإجازة لكل موظف</div>
+    <div class="bchart" id="empChart"></div>
+  </div>
+  <div class="card">
+    <div class="sec-title">🎨 توزيع أنواع الإجازات</div>
+    <div class="tdist" id="typeDist"></div>
+  </div>
+  <div class="card">
+    <div class="sec-title">🟢 في إجازة الآن</div>
+    <div class="ol-grid" id="onLeaveNow"></div>
+  </div>
+</div>
+
+<!-- EMPLOYEE PROFILES -->
+<div id="pane-profiles" class="pane">
+  <div class="card">
+    <div class="sec-title">👤 ملفات الموظفين</div>
+    <div class="emp-profile-grid" id="profileGrid"></div>
+  </div>
+</div>
+
+<!-- ADD/EDIT FORM -->
+<div id="pane-add" class="pane">
+
+  <!-- استيراد من Excel -->
+  <div class="card" style="border-color:rgba(46,196,182,.35);">
+    <div class="sec-title">📥 استيراد إجازات من ملف Excel</div>
+    <div style="font-size:.82rem;color:var(--text2);line-height:1.8;margin-bottom:12px;">
+      الصيغة المطلوبة: أعمدة <strong>اسم الموظف | نوع الإجازة | بداية الإجازة | نهاية الإجازة</strong>
+      — التواريخ <strong>هجرية</strong> بصيغة <code style="background:var(--surface2);padding:2px 8px;border-radius:6px;direction:ltr;display:inline-block">1447-03-15</code>
+      — يدعم عدة أوراق (ورقة لكل موظف)
+    </div>
+    <label style="display:inline-flex;align-items:center;gap:9px;background:linear-gradient(135deg,var(--accent3),#1a8f84);color:#fff;padding:11px 24px;border-radius:11px;cursor:pointer;font-size:.9rem;font-weight:800;">
+      📂 اختر ملف Excel
+      <input type="file" accept=".xlsx,.xls" onchange="importExcel(this)" style="display:none;">
+    </label>
+    <div id="importStatus" style="margin-top:12px;font-size:.85rem;line-height:1.8;"></div>
+  </div>
+
+  <div class="card">
+    <div class="sec-title" id="formTitle">➕ إضافة إجازة جديدة</div>
+    <div class="fgrid">
+      <div class="fg">
+        <label class="flabel">الموظف</label>
+        <select class="fc" id="addEmp"></select>
+      </div>
+      <div class="fg">
+        <label class="flabel">نوع الإجازة</label>
+        <select class="fc" id="addType">
+          <option value="annual">سنوية</option>
+          <option value="sick">مرضية</option>
+          <option value="emergency">اضطراري</option>
+          <option value="maternity">أمومة</option>
+          <option value="study">دراسية</option>
+          <option value="unpaid">بدون راتب</option>
+          <option value="shift">بدل مناوبة</option>
+          <option value="assignment">بدل تكليف</option>
+          <option value="hajj">إجازة حج</option>
+          <option value="sick_ext">مرضية مطولة</option>
+          <option value="compassionate">إجازة وفاة</option>
+          <option value="remote">عمل عن بُعد</option>
+          <option value="compensatory">تعويضية</option>
+          <option value="patient_escort">مرافقة مريض</option>
+          <option value="absence_comp">بدل أيام غياب</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label class="flabel">📅 من تاريخ</label>
+        <div class="date-picker-wrap" onclick="openCal('addStart')">
+          <span class="dp-icon">📅</span>
+          <span class="dp-val" id="addStart-display">اضغط لاختيار التاريخ</span>
+          <input type="hidden" id="addStart">
+        </div>
+      </div>
+      <div class="fg">
+        <label class="flabel">📅 إلى تاريخ</label>
+        <div class="date-picker-wrap" onclick="openCal('addEnd')">
+          <span class="dp-icon">📅</span>
+          <span class="dp-val" id="addEnd-display">اضغط لاختيار التاريخ</span>
+          <input type="hidden" id="addEnd">
+        </div>
+      </div>
+      <div class="fg ffull">
+        <label class="flabel">ملاحظات (اختياري)</label>
+        <input type="text" class="fc" id="addNote" placeholder="أي ملاحظات...">
+      </div>
+      <div class="fg ffull">
+        <div class="dprev" id="daysPrev">اختر تواريخ لحساب عدد الأيام</div>
+      </div>
+      <div class="fg ffull" style="display:flex;gap:9px;justify-content:flex-end;flex-wrap:wrap;">
+        <button class="btn-s" id="cancelBtn" onclick="cancelEdit()" style="display:none;">إلغاء التعديل</button>
+        <button class="btn-p" id="saveBtn" onclick="saveLeave()">✅ حفظ الإجازة</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MANAGE EMPLOYEES -->
+<div id="pane-manage" class="pane">
+  <div class="card">
+    <div class="sec-title">⚙️ إدارة الموظفين</div>
+    <div class="emp-list" id="empMgmt"></div>
+    <div class="divider"></div>
+    <div class="flabel" style="margin-bottom:7px;">➕ إضافة موظف جديد</div>
+    <div class="add-row">
+      <input type="text" class="fc" id="newEmp" placeholder="اسم الموظف...">
+      <button class="btn-p" onclick="addEmp()" style="padding:9px 16px;white-space:nowrap;">إضافة</button>
+    </div>
+  </div>
+</div>
+
+</div><!-- /main -->
+
+<!-- PROFILE MODAL -->
+<div class="pmodal" id="profileModal">
+  <div class="pmodal-inner">
+    <div class="pmodal-header">
+      <div class="pm-title" id="pmTitle"></div>
+      <button class="pm-close" onclick="closeProfile()">✕</button>
+    </div>
+    <div class="pm-stats" id="pmStats"></div>
+    <div class="sec-title" style="margin-bottom:10px;">توزيع الإجازات</div>
+    <div class="pm-type-dist" id="pmTypeDist"></div>
+    <div class="sec-title" style="margin-bottom:10px;">سجل الإجازات</div>
+    <div class="pm-leavelist" id="pmLeaveList"></div>
+  </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="emodal" id="editModal">
+  <div class="emodal-inner">
+    <div class="emodal-header">
+      <div class="pm-title">✏️ تعديل الإجازة</div>
+      <button class="pm-close" onclick="closeEdit()">✕</button>
+    </div>
+    <div class="fgrid">
+      <div class="fg"><label class="flabel">الموظف</label><select class="fc" id="editEmp"></select></div>
+      <div class="fg"><label class="flabel">نوع الإجازة</label>
+        <select class="fc" id="editType">
+          <option value="annual">سنوية</option>
+          <option value="sick">مرضية</option>
+          <option value="emergency">اضطراري</option>
+          <option value="maternity">أمومة</option>
+          <option value="study">دراسية</option>
+          <option value="unpaid">بدون راتب</option>
+          <option value="shift">بدل مناوبة</option>
+          <option value="assignment">بدل تكليف</option>
+          <option value="hajj">إجازة حج</option>
+          <option value="sick_ext">مرضية مطولة</option>
+          <option value="compassionate">إجازة وفاة</option>
+          <option value="remote">عمل عن بُعد</option>
+          <option value="compensatory">تعويضية</option>
+          <option value="patient_escort">مرافقة مريض</option>
+          <option value="absence_comp">بدل أيام غياب</option>
+        </select>
+      </div>
+      <div class="fg"><label class="flabel">من</label>
+        <div class="date-picker-wrap" onclick="openCal('editStart')">
+          <span class="dp-icon">📅</span>
+          <span class="dp-val placeholder" id="editStart-display">اضغط لاختيار التاريخ</span>
+          <input type="hidden" id="editStart">
+        </div>
+      </div>
+      <div class="fg"><label class="flabel">إلى</label>
+        <div class="date-picker-wrap" onclick="openCal('editEnd')">
+          <span class="dp-icon">📅</span>
+          <span class="dp-val placeholder" id="editEnd-display">اضغط لاختيار التاريخ</span>
+          <input type="hidden" id="editEnd">
+        </div>
+      </div>
+      <div class="fg ffull"><label class="flabel">ملاحظات</label><input type="text" class="fc" id="editNote"></div>
+      <div class="fg ffull" style="display:flex;gap:8px;justify-content:flex-end;">
+        <button class="btn-s" onclick="closeEdit()">إلغاء</button>
+        <button class="btn-p" onclick="saveEdit()">✅ حفظ التعديل</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /appRoot -->
+
+<!-- CUSTOM CALENDAR PICKER MODAL -->
+<div id="calPickerModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:400;align-items:center;justify-content:center;padding:16px;">
+  <div id="calPickerInner" style="background:#0e1d30;border:1px solid #243a5e;border-radius:20px;padding:28px;width:100%;max-width:520px;direction:rtl;box-shadow:0 20px 60px rgba(0,0,0,.6);">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+      <button onclick="cpPrevM()" style="background:#152540;border:1px solid #243a5e;color:#e0ecff;width:44px;height:44px;border-radius:11px;cursor:pointer;font-size:1.3rem;">→</button>
+      <div id="cpTitle" style="font-size:1rem;font-weight:800;color:#e0ecff;text-align:center;"></div>
+      <button onclick="cpNextM()" style="background:#152540;border:1px solid #243a5e;color:#e0ecff;width:44px;height:44px;border-radius:11px;cursor:pointer;font-size:1.3rem;">←</button>
+    </div>
+    <!-- Language toggle -->
+    <div style="display:flex;gap:10px;margin-bottom:18px;justify-content:center;">
+      <button id="cpLangAr" onclick="cpSetLang('ar')" style="background:#e63946;border:none;color:#fff;padding:7px 26px;border-radius:20px;cursor:pointer;font-family:'Cairo',sans-serif;font-size:.95rem;font-weight:800;">عربي</button>
+      <button id="cpLangEn" onclick="cpSetLang('en')" style="background:#152540;border:1px solid #243a5e;color:#7a9fc2;padding:7px 26px;border-radius:20px;cursor:pointer;font-family:'Cairo',sans-serif;font-size:.95rem;font-weight:800;">English</button>
+    </div>
+    <div id="cpGrid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px;"></div>
+    <div style="display:flex;gap:10px;margin-top:20px;justify-content:flex-end;">
+      <button onclick="closeCal()" style="background:#152540;border:1px solid #243a5e;color:#e0ecff;padding:11px 26px;border-radius:11px;cursor:pointer;font-family:'Cairo',sans-serif;font-size:.95rem;font-weight:700;">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════
+//  ☁️  JSONBin.io — تخزين سحابي مشترك بين كل الأجهزة
+//
+//  خطوات الإعداد (مرة واحدة فقط):
+//  1. افتح https://jsonbin.io وسجّل حساباً مجانياً
+//  2. من لوحة التحكم اضغط "Create Bin" وأدخل:
+//     {"leaves":[],"emps":["فهد","عقيلة","ضحى","ابريه","المطوع","مراضيف","السعيد","افنان","حمد","رضا","سلطان","عبدالجليل","عواطف"]}
+//  3. انسخ الـ BIN_ID من URL الـ bin (مثال: 6650a1234abc...)
+//  4. من قسم API Keys انسخ الـ Master Key
+//  5. ضع القيمتين أدناه واحفظ الملف وارفعه على Netlify
+// ═══════════════════════════════════════════════════
+const BIN_ID  = '6a2161acda38895dfe860b5e';
+const API_KEY = '$2a$10$.ZcGfiJENIfdfoO5PURFLuSaSBw/PlKate5HZtmtb9USaYHf2hTgO';
+const BIN_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
+
+const DEF_EMPS=['فهد','عقيلة','ضحى','ابريه','المطوع','مراضيف','السعيد','افنان','حمد','رضا','سلطان','عبدالجليل','عواطف'];
+const COLORS=['#e63946','#f4a261','#2ec4b6','#a8dadc','#a2d2ff','#bde0fe','#cdb4db','#ffc8dd','#ffafcc','#b5ead7','#ffdac1','#e2f0cb','#bee0fd','#f0e6ff','#ffd6a5'];
+const TYPES={annual:'سنوية',sick:'مرضية',emergency:'اضطراري',maternity:'أمومة',study:'دراسية',unpaid:'بدون راتب',shift:'بدل مناوبة',assignment:'بدل تكليف',hajj:'إجازة حج',sick_ext:'إجازة مرضية مطولة',compassionate:'إجازة وفاة',remote:'عمل عن بُعد',compensatory:'تعويضية',patient_escort:'مرافقة مريض',absence_comp:'بدل أيام غياب'};
+const TCLASS={annual:'annual',sick:'sick',emergency:'emergency',maternity:'maternity',study:'study',unpaid:'unpaid',shift:'shift',assignment:'assignment',hajj:'hajj',sick_ext:'sick_ext',compassionate:'compassionate',remote:'remote',compensatory:'shift',patient_escort:'maternity',absence_comp:'unpaid'};
+const MONTHS=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+const HIJRI_MONTHS=['محرّم','صفر','ربيع الأول','ربيع الآخر','جمادى الأولى','جمادى الآخرة','رجب','شعبان','رمضان','شوّال','ذو القعدة','ذو الحجة'];
+const DAYS=['الأحد','الإثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+
+let emps=[...DEF_EMPS];
+let leaves=[];
+let cy=new Date().getFullYear(), cm=new Date().getMonth();
+let editId=null;
+let isSaving=false;
+
+// ── تحميل البيانات من السحابة عند فتح الصفحة ────────
+async function loadData(){
+  showLoader(true);
+  // إذا لم يُعبأ BIN_ID بعد → استخدم localStorage كاحتياط
+  if(BIN_ID.includes('ضع_')){
+    emps=JSON.parse(localStorage.getItem('bb_emps')||'null')||[...DEF_EMPS];
+    leaves=JSON.parse(localStorage.getItem('bb_leaves')||'[]');
+    showLoader(false);
+    showSetupBanner();
+    populateSel();renderCal();
+    return;
+  }
+  try{
+    const r=await fetch(BIN_URL+'/latest',{headers:{'X-Master-Key':API_KEY}});
+    if(!r.ok) throw new Error('fetch failed');
+    const d=await r.json();
+    leaves=d.record.leaves||[];
+    emps=d.record.emps||[...DEF_EMPS];
+  }catch(e){
+    // fallback to localStorage if offline
+    emps=JSON.parse(localStorage.getItem('bb_emps')||'null')||[...DEF_EMPS];
+    leaves=JSON.parse(localStorage.getItem('bb_leaves')||'[]');
+    toast('⚠️ تعذّر الاتصال — يُعرض آخر حفظ محلي',true);
+  }
+  showLoader(false);
+  populateSel();renderCal();
+}
+
+// ── حفظ البيانات على السحابة ──────────────────────
+async function save(){
+  // حفظ محلي فوري كنسخة احتياطية
+  localStorage.setItem('bb_leaves',JSON.stringify(leaves));
+  localStorage.setItem('bb_emps',JSON.stringify(emps));
+  if(BIN_ID.includes('ضع_')) return;
+  if(isSaving) return;
+  isSaving=true;
+  setSyncIcon('⏳');
+  try{
+    await fetch(BIN_URL,{
+      method:'PUT',
+      headers:{'Content-Type':'application/json','X-Master-Key':API_KEY},
+      body:JSON.stringify({leaves,emps})
+    });
+    setSyncIcon('☁️✅');
+    setTimeout(()=>setSyncIcon('☁️'),2500);
+  }catch(e){
+    setSyncIcon('⚠️');
+    toast('⚠️ تعذّر الحفظ السحابي — محفوظ محلياً',true);
+  }
+  isSaving=false;
+}
+
+function setSyncIcon(ic){
+  const el=document.getElementById('syncIcon');
+  if(el) el.textContent=ic;
+}
+function showLoader(v){
+  document.getElementById('pageLoader').style.display=v?'flex':'none';
+  document.getElementById('appRoot').style.display=v?'none':'block';
+}
+function showSetupBanner(){
+  document.getElementById('setupBanner').style.display='block';
+}
+function ec(n){const i=emps.indexOf(n)%COLORS.length;return COLORS[i<0?0:i];}
+function db(a,b){return Math.round((new Date(b)-new Date(a))/86400000)+1;}
+function drange(s,e){const r=[];let d=new Date(s),en=new Date(e);while(d<=en){r.push(d.toISOString().slice(0,10));d.setDate(d.getDate()+1);}return r;}
+function today(){return new Date().toISOString().slice(0,10);}
+
+function toast(msg,err=false){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='toast'+(err?' err':'')+' show';
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+function sw(name,btn){
+  document.querySelectorAll('.pane').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('pane-'+name).classList.add('active');
+  btn.classList.add('active');
+  if(name==='calendar')renderCal();
+  if(name==='list')renderList();
+  if(name==='conflicts')renderConf();
+  if(name==='stats')renderStats();
+  if(name==='profiles')renderProfiles();
+  if(name==='add')populateSel();
+  if(name==='manage')renderManage();
+}
+
+// ── SAUDI OFFICIAL HOLIDAYS ──────────────────────
+function getSaudiHolidays(y){
+  const h=[];
+  // يوم التأسيس 22 فبراير (يومان)
+  drange(`${y}-02-21`,`${y}-02-22`).forEach(d=>h.push({date:d,name:'🏛️ التأسيس',color:'#a2d2ff'}));
+  // عيد الفطر 2025 / 2026
+  const eidFitr={2025:['2025-03-29','2025-04-02'],2026:['2026-03-19','2026-03-23']};
+  // عيد الأضحى 2025 / 2026
+  const eidAdha={2025:['2025-06-05','2025-06-09'],2026:['2026-05-26','2026-05-30']};
+  // اليوم الوطني 23 سبتمبر (يومان)
+  drange(`${y}-09-22`,`${y}-09-23`).forEach(d=>h.push({date:d,name:'🇸🇦 وطني',color:'#2ec4b6'}));
+  // الإجازة الصيفية كامل يونيو-أغسطس
+  drange(`${y}-06-15`,`${y}-08-31`).forEach(d=>h.push({date:d,name:'☀️ صيفية',color:'#ffd878'}));
+  if(eidFitr[y]) drange(eidFitr[y][0],eidFitr[y][1]).forEach(d=>h.push({date:d,name:'🌙 عيد الفطر',color:'#f4a261'}));
+  if(eidAdha[y]) drange(eidAdha[y][0],eidAdha[y][1]).forEach(d=>h.push({date:d,name:'🐑 عيد الأضحى',color:'#c8aaff'}));
+  return h;
+}
+
+// ── CALENDAR ──────────────────────────────────────
+let calMode='ar';
+let calFilterStart='', calFilterEnd='';
+
+function toHijriDay(y,m,d){
+  try{return new Date(y,m,d).toLocaleDateString('ar-SA-u-ca-islamic',{day:'numeric'});}
+  catch(e){return d;}
+}
+
+// ── تحويل هجري ↔ ميلادي ───────────────────────────
+function getHijriParts(dateObj){
+  // يرجّع {year, month, day} بالهجري
+  const parts=new Intl.DateTimeFormat('en-US-u-ca-islamic',{year:'numeric',month:'numeric',day:'numeric'}).formatToParts(dateObj);
+  let y=0,m=0,d=0;
+  parts.forEach(p=>{
+    if(p.type==='year')y=parseInt(p.value);
+    if(p.type==='month')m=parseInt(p.value);
+    if(p.type==='day')d=parseInt(p.value);
+  });
+  return {year:y,month:m,day:d};
+}
+
+function goToHijri(hYear,hMonth){
+  // يبحث عن أول يوم ميلادي يقع في الشهر الهجري المطلوب
+  // نبدأ من تقدير تقريبي ثم نضبط
+  // التقريب: (hYear - 1) * 354.367 + (hMonth-1)*29.53 يوم منذ بداية التقويم الهجري
+  // الأبسط: نمشي يوم بيوم حول التقدير
+  const approxGregYear=Math.floor(hYear*0.970224+621.5);
+  let testDate=new Date(approxGregYear,0,1);
+  // نبحث ضمن 3 سنوات
+  let found=null;
+  for(let i=0;i<1200;i++){
+    const p=getHijriParts(testDate);
+    if(p.year===hYear&&p.month===hMonth){found=new Date(testDate);break;}
+    // تحديد الاتجاه
+    if(p.year<hYear||(p.year===hYear&&p.month<hMonth)) testDate.setDate(testDate.getDate()+1);
+    else testDate.setDate(testDate.getDate()-1);
+  }
+  if(found){cy=found.getFullYear();cm=found.getMonth();}
+  renderCal();
+}
+
+function renderCal(){
+  const hijriFull=new Date(cy,cm,15).toLocaleDateString('ar-SA-u-ca-islamic',{month:'long',year:'numeric'});
+  const gregFull=`${MONTHS[cm]} ${cy}`;
+  const yearNow=new Date().getFullYear();
+
+  // العنوان الكبير حسب الوضع
+  const bigTitle = calMode==='ar' ? hijriFull : gregFull;
+  const subTitle = calMode==='ar' ? gregFull : hijriFull;
+
+  let monthOpts='', yearOpts='', monthOnchange='', yearOnchange='';
+
+  if(calMode==='ar'){
+    // ── وضع هجري: القوائم تعرض الأشهر والسنوات الهجرية ──
+    const cur=getHijriParts(new Date(cy,cm,15));
+    monthOpts=HIJRI_MONTHS.map((m,i)=>`<option value="${i+1}" ${(i+1)===cur.month?'selected':''}>${m}</option>`).join('');
+    for(let yy=cur.year-3;yy<=cur.year+5;yy++) yearOpts+=`<option value="${yy}" ${yy===cur.year?'selected':''}>${yy} هـ</option>`;
+    monthOnchange=`goToHijri(${cur.year}, +this.value)`;
+    yearOnchange=`goToHijri(+this.value, ${cur.month})`;
+  } else {
+    // ── وضع ميلادي ──
+    monthOpts=MONTHS.map((m,i)=>`<option value="${i}" ${i===cm?'selected':''}>${m}</option>`).join('');
+    for(let yy=yearNow-3;yy<=yearNow+5;yy++) yearOpts+=`<option value="${yy}" ${yy===cy?'selected':''}>${yy}</option>`;
+    monthOnchange='cm=+this.value;renderCal()';
+    yearOnchange='cy=+this.value;renderCal()';
+  }
+
+  document.getElementById('calTitle').innerHTML=
+    `<div style="text-align:center;line-height:1.5">
+       <div style="font-size:1.25rem;font-weight:900;color:var(--text);margin-bottom:8px">${bigTitle}</div>
+       <div style="display:flex;gap:8px;justify-content:center;align-items:center;flex-wrap:wrap">
+         <select onchange="${monthOnchange}" title="اختر الشهر" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:6px 12px;border-radius:10px;font-family:'Cairo',sans-serif;font-size:.92rem;font-weight:800;cursor:pointer;outline:none;">${monthOpts}</select>
+         <select onchange="${yearOnchange}" title="اختر السنة" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:6px 12px;border-radius:10px;font-family:'Cairo',sans-serif;font-size:.92rem;font-weight:800;cursor:pointer;outline:none;">${yearOpts}</select>
+       </div>
+       <div style="font-size:.8rem;color:var(--text2);margin-top:6px">${subTitle}</div>
+       <button onclick="cy=${yearNow};cm=${new Date().getMonth()};renderCal()" style="background:none;border:none;color:var(--accent3);font-size:.78rem;font-weight:700;cursor:pointer;margin-top:4px;font-family:'Cairo',sans-serif;">↺ الشهر الحالي</button>
+     </div>`;
+
+  ['Ar','En'].forEach(l=>{
+    const btn=document.getElementById('calMode'+l);if(!btn)return;
+    const active=calMode===(l.toLowerCase());
+    btn.style.background=active?'var(--accent)':'var(--surface2)';
+    btn.style.borderColor=active?'var(--accent)':'var(--border)';
+    btn.style.color=active?'#fff':'var(--text2)';
+  });
+
+  document.getElementById('calLegend').innerHTML=emps.map(e=>
+    `<div class="leg-item"><div class="leg-dot" style="background:${ec(e)}"></div>${e}</div>`).join('');
+
+  const holidays=getSaudiHolidays(cy);
+  const holidayMap={};
+  holidays.forEach(h=>{holidayMap[h.date]=h;});
+
+  // فلتر الفترة — يجب تعريفه قبل الاستخدام
+  const fStart=calFilterStart, fEnd=calFilterEnd;
+  const td=today();
+
+  // نتيجة الفلتر
+  const resEl=document.getElementById('calFilterResult');
+  if(resEl){
+    if(fStart||fEnd){
+      const hit=new Set();
+      leaves.forEach(l=>{
+        const s=new Date(fStart||l.start), e2=new Date(fEnd||l.end);
+        const ls=new Date(l.start), le=new Date(l.end);
+        if(ls<=e2&&le>=s) hit.add(l.emp);
+      });
+      resEl.innerHTML=hit.size
+        ?`👥 في إجازة خلال هذه الفترة (${hit.size}): <strong>${[...hit].join(' — ')}</strong>`
+        :'✅ لا يوجد موظفون في إجازة خلال هذه الفترة';
+    } else resEl.textContent='';
+  }
+
+  // ════ عرض متعدد الأشهر عند وجود فلتر يمتد لأكثر من شهر ════
+  if(fStart&&fEnd){
+    const sD=new Date(fStart+'T00:00:00'), eD=new Date(fEnd+'T00:00:00');
+    const monthsSpan=(eD.getFullYear()-sD.getFullYear())*12+(eD.getMonth()-sD.getMonth());
+    if(monthsSpan>=1){
+      // اجمع عطل كل السنوات ضمن الفترة
+      const allHol={};
+      for(let yy=sD.getFullYear();yy<=eD.getFullYear();yy++){
+        getSaudiHolidays(yy).forEach(h=>{allHol[h.date]=h;});
+      }
+      document.getElementById('calGrid').style.display='none';
+      let multi=document.getElementById('calMultiMonth');
+      if(!multi){
+        multi=document.createElement('div');
+        multi.id='calMultiMonth';
+        document.getElementById('calGrid').parentElement.appendChild(multi);
+      }
+      multi.style.display='block';
+      let blocks='';
+      let my=sD.getFullYear(), mm=sD.getMonth();
+      for(let k=0;k<=monthsSpan;k++){
+        blocks+=buildMonthBlock(my,mm,allHol,fStart,fEnd,td);
+        if(mm===11){mm=0;my++;}else mm++;
+      }
+      multi.innerHTML=blocks;
+      return;
+    }
+  }
+  // وضع الشهر الواحد العادي
+  document.getElementById('calGrid').style.display='grid';
+  const mm2=document.getElementById('calMultiMonth');
+  if(mm2) mm2.style.display='none';
+
+  const grid=document.getElementById('calGrid');
+  grid.innerHTML=DAYS.map(d=>`<div class="cal-dh" style="font-size:.88rem;font-weight:800;padding:9px 2px;color:var(--text2)">${d}</div>`).join('');
+
+  const first=new Date(cy,cm,1).getDay();
+  const total=new Date(cy,cm+1,0).getDate();
+
+  for(let i=0;i<first;i++) grid.innerHTML+=`<div class="cal-day empty"></div>`;
+
+  for(let d=1;d<=total;d++){
+    grid.innerHTML+=buildDayCell(cy,cm,d,holidayMap,fStart,fEnd,td);
+  }
+}
+
+// ── بناء خلية يوم واحد ─────────────────────────────
+function buildDayCell(year,month,d,holidayMap,fStart,fEnd,td){
+  const ds=`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+  let on=leaves.filter(l=>l.start<=ds&&l.end>=ds);
+  if(fStart&&fEnd) on=on.filter(l=>!(l.end<fStart||l.start>fEnd));
+  else if(fStart) on=on.filter(l=>l.end>=fStart);
+  else if(fEnd)   on=on.filter(l=>l.start<=fEnd);
+
+  // هل اليوم خارج نطاق الفلتر؟
+  const outOfRange = (fStart&&ds<fStart) || (fEnd&&ds>fEnd);
+
+  const isTd=ds===td;
+  const holiday=holidayMap[ds];
+  const dispNum=calMode==='ar'?toHijriDay(year,month,d):d;
+  const subNum =calMode==='ar'?d:toHijriDay(year,month,d);
+  const holBorder=holiday?`border-color:${holiday.color||'#f4a261'}55;background:${holiday.color||'#f4a261'}0d`:'';
+  const dimStyle=outOfRange?'opacity:.28;':'';
+
+  let html=`<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:3px;gap:3px">
+    <div style="display:flex;align-items:baseline;gap:5px;flex-wrap:wrap;flex:1;min-width:0">
+      <span style="font-size:1.35rem;font-weight:900;color:${isTd?'var(--accent)':'var(--text)'};line-height:1;flex-shrink:0">${dispNum}</span>
+      <span style="font-size:.82rem;color:var(--text2);line-height:1;flex-shrink:0;font-weight:700">${subNum}</span>
+      ${holiday?`<span style="font-size:.68rem;font-weight:800;color:${holiday.color||'#f4a261'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${holiday.name}</span>`:''}
+    </div>
+    ${on.length>1?'<span style="font-size:.72rem;flex-shrink:0">⚠️</span>':''}
+  </div>`;
+
+  if(on.length){
+    html+=`<div style="display:flex;flex-wrap:wrap;gap:2px;margin-bottom:4px">
+      ${on.map(l=>`<span style="width:9px;height:9px;border-radius:50%;background:${ec(l.emp)};display:inline-block;flex-shrink:0"></span>`).join('')}
+    </div>`;
+    html+=`<div style="display:flex;flex-direction:column;gap:2px">
+      ${on.map(l=>`<div style="display:flex;align-items:center;gap:4px">
+        <span style="width:7px;height:7px;min-width:7px;border-radius:50%;background:${ec(l.emp)};display:inline-block"></span>
+        <span style="font-size:.8rem;font-weight:800;color:var(--text);line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${l.emp}</span>
+      </div>`).join('')}
+    </div>`;
+  }
+
+  return `<div class="cal-day${isTd?' today':''}" style="min-height:110px;padding:8px 7px;${holBorder}${dimStyle}">${html}</div>`;
+}
+
+// ── بناء كتلة شهر كامل (للعرض متعدد الأشهر) ─────────
+function buildMonthBlock(year,month,holidayMap,fStart,fEnd,td){
+  const greg=`${MONTHS[month]} ${year}`;
+  const hijri=new Date(year,month,15).toLocaleDateString('ar-SA-u-ca-islamic',{month:'long',year:'numeric'});
+  const title=calMode==='ar'?`${hijri} — <span style="color:var(--text3);font-size:.85rem">${greg}</span>`:`${greg} — <span style="color:var(--text3);font-size:.85rem">${hijri}</span>`;
+
+  let cells=DAYS.map(d=>`<div class="cal-dh" style="font-size:.8rem;font-weight:800;padding:7px 2px;color:var(--text2)">${d}</div>`).join('');
+  const first=new Date(year,month,1).getDay();
+  const total=new Date(year,month+1,0).getDate();
+  for(let i=0;i<first;i++) cells+=`<div class="cal-day empty"></div>`;
+  for(let d=1;d<=total;d++) cells+=buildDayCell(year,month,d,holidayMap,fStart,fEnd,td);
+
+  return `<div style="margin-bottom:24px">
+    <div style="font-size:1.1rem;font-weight:900;color:var(--text);margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid var(--accent);">${title}</div>
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px">${cells}</div>
+  </div>`;
+}
+
+function prevM(){if(cm===0){cm=11;cy--;}else cm--;renderCal();}
+function nextM(){if(cm===11){cm=0;cy++;}else cm++;renderCal();}
+
+// ── LIST (CARDS) ──────────────────────────────────
+function renderList(){
+  const fn=document.getElementById('fName');
+  const cv=fn.value;
+  fn.innerHTML='<option value="">👤 كل الموظفين</option>'+emps.map(e=>`<option value="${e}" ${e===cv?'selected':''}>${e}</option>`).join('');
+  fn.value=cv;
+  const nf=fn.value, tf=document.getElementById('fType').value;
+  const filtered=leaves.filter(l=>(!nf||l.emp===nf)&&(!tf||l.type===tf)).sort((a,b)=>b.start.localeCompare(a.start));
+  const container=document.getElementById('leaveCards');
+  const empty=document.getElementById('listEmpty');
+  const countEl=document.getElementById('listCount');
+  if(!filtered.length){
+    container.innerHTML='';
+    empty.style.display='block';
+    countEl.textContent='';
+    return;
+  }
+  empty.style.display='none';
+  countEl.textContent=`${filtered.length} إجازة`;
+  container.innerHTML=filtered.map(l=>{
+    const days=db(l.start,l.end);
+    const td=today();
+    const active=l.start<=td&&l.end>=td;
+    const statusColor=active?'var(--success)':'var(--text3)';
+    const statusText=active?'🟢 جارية الآن':'⚫ منتهية أو مستقبلية';
+    return`<div class="leave-card">
+      <div class="lc-top">
+        <div class="lc-emp">
+          <div class="lc-avatar" style="background:${ec(l.emp)}">${l.emp.charAt(0)}</div>
+          <div>
+            <div class="lc-name">${l.emp}</div>
+            <div style="font-size:.75rem;color:${statusColor};margin-top:2px">${statusText}</div>
+          </div>
+        </div>
+        <div class="lc-actions">
+          <button class="lc-edit" onclick="openEdit('${l.id}')">✏️ تعديل</button>
+          <button class="lc-del" onclick="delLeave('${l.id}')">🗑️ حذف</button>
+        </div>
+      </div>
+      <div class="lc-body">
+        <div class="lc-field">
+          <div class="lc-flabel">نوع الإجازة</div>
+          <div class="lc-fval"><span class="badge b-${TCLASS[l.type]||'annual'}">${TYPES[l.type]||l.type}</span></div>
+        </div>
+        <div class="lc-field">
+          <div class="lc-flabel">تاريخ البداية</div>
+          <div class="lc-fval">📅 ${l.start}</div>
+        </div>
+        <div class="lc-field">
+          <div class="lc-flabel">تاريخ النهاية</div>
+          <div class="lc-fval">📅 ${l.end}</div>
+        </div>
+        <div class="lc-field">
+          <div class="lc-flabel">عدد الأيام</div>
+          <div class="lc-fval" style="font-size:1.1rem;color:var(--accent3)">${days} يوم</div>
+        </div>
+        ${l.note?`<div class="lc-note"><div class="lc-flabel">ملاحظات</div><div class="lc-fval" style="color:var(--text2)">${l.note}</div></div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── CONFLICTS ─────────────────────────────────────
+function renderConf(){
+  const dm={};
+  leaves.forEach(l=>drange(l.start,l.end).forEach(d=>{if(!dm[d])dm[d]=[];dm[d].push(l.emp);}));
+  const cdays=Object.entries(dm).filter(([,e])=>e.length>=2).sort(([a],[b])=>b.localeCompare(a));
+  const cl=document.getElementById('confList');
+  if(!cdays.length){cl.innerHTML='<div class="empty"><div class="ei">✅</div>لا توجد تداخلات</div>';} 
+  else cl.innerHTML=cdays.slice(0,40).map(([date,es])=>{
+    const c=es.length,sev=c>=5?'h':c>=3?'m':'l',label=c>=5?'🔴 خطرة':c>=3?'🟡 متوسطة':'🔵 منخفضة';
+    return`<div class="conf-card"><div class="csev s${sev}"></div><div><div style="font-weight:800;font-size:.83rem">${date}</div><div style="font-size:.75rem;color:var(--text2);margin-top:2px">${[...new Set(es)].join(' ، ')}</div><div style="font-size:.68rem;color:var(--text3);margin-top:3px">${c} موظفين — ${label}</div></div></div>`;
+  }).join('');
+  const busy=Object.entries(dm).filter(([,e])=>e.length>=2).sort(([,a],[,b])=>b.length-a.length).slice(0,10);
+  const bc=document.getElementById('busyChart');
+  if(!busy.length){bc.innerHTML='<div class="empty"><div class="ei">📊</div>لا توجد بيانات</div>';return;}
+  const mx=busy[0][1].length;
+  bc.innerHTML=busy.map(([date,es])=>{
+    const clr=es.length>=5?'var(--danger)':es.length>=3?'var(--warning)':'var(--success)';
+    return`<div class="brow"><div class="bdate">${date}</div><div class="bbg"><div class="bbar" style="width:${(es.length/mx)*100}%;background:${clr}">${es.length}</div></div><div class="bcnt" style="color:${clr}">${es.length}</div></div>`;
+  }).join('');
+}
+
+// ── STATS ─────────────────────────────────────────
+function renderStats(){
+  const td=today();
+  const onL=leaves.filter(l=>l.start<=td&&l.end>=td);
+  const totDays=leaves.reduce((s,l)=>s+db(l.start,l.end),0);
+  document.getElementById('statsCards').innerHTML=`
+    <div class="scard"><div class="sicon">📋</div><div><div class="sval">${leaves.length}</div><div class="slabel">إجمالي الإجازات</div></div></div>
+    <div class="scard"><div class="sicon">📅</div><div><div class="sval">${totDays}</div><div class="slabel">إجمالي الأيام</div></div></div>
+    <div class="scard"><div class="sicon">🟢</div><div><div class="sval" style="color:var(--success)">${onL.length}</div><div class="slabel">في إجازة الآن</div></div></div>
+    <div class="scard"><div class="sicon">👥</div><div><div class="sval">${emps.length}</div><div class="slabel">الموظفون</div></div></div>`;
+  const ed=emps.map(e=>({name:e,days:leaves.filter(l=>l.emp===e).reduce((s,l)=>s+db(l.start,l.end),0)})).sort((a,b)=>b.days-a.days);
+  const mx=Math.max(...ed.map(e=>e.days),1);
+  document.getElementById('empChart').innerHTML=ed.map(e=>`<div class="brow2"><div class="bname">${e.name}</div><div class="bbg2"><div class="bfill" style="width:${(e.days/mx)*100}%;background:${ec(e.name)}">${e.days>0?e.days:''}</div></div><div class="bval">${e.days}</div></div>`).join('');
+  const tc={};leaves.forEach(l=>{tc[l.type]=(tc[l.type]||0)+1;});
+  document.getElementById('typeDist').innerHTML=Object.entries(TYPES).map(([k,v])=>`<div class="titem"><div class="tcount">${tc[k]||0}</div><div class="tname">${v}</div></div>`).join('');
+  const ol=document.getElementById('onLeaveNow');
+  if(!onL.length)ol.innerHTML='<div style="color:var(--text3);font-size:.8rem">لا أحد في إجازة حالياً</div>';
+  else ol.innerHTML=onL.map(l=>`<div class="ol-chip"><span style="width:8px;height:8px;border-radius:50%;background:${ec(l.emp)};display:inline-block"></span>${l.emp} — <span class="badge b-${TCLASS[l.type]}" style="margin:0 3px">${TYPES[l.type]}</span></div>`).join('');
+}
+
+// ── PROFILES ──────────────────────────────────────
+function renderProfiles(){
+  const td=today();
+  const grid=document.getElementById('profileGrid');
+  grid.innerHTML=emps.map(e=>{
+    const el=leaves.filter(l=>l.emp===e);
+    const totD=el.reduce((s,l)=>s+db(l.start,l.end),0);
+    const onNow=el.filter(l=>l.start<=td&&l.end>=td).length>0;
+    const types=[...new Set(el.map(l=>l.type))];
+    return`<div class="emp-pcard" onclick="openProfile('${e}')">
+      <div class="emp-ph">
+        <div class="emp-avatar" style="background:${ec(e)}">${e.charAt(0)}</div>
+        <div><div class="emp-pname">${e}</div><div class="emp-psub">${onNow?'🟢 في إجازة الآن':'⚫ حاضر'}</div></div>
+      </div>
+      <div class="emp-pstats">
+        <div class="ep-stat"><span class="ep-sval">${el.length}</span><span class="ep-slabel">إجازة</span></div>
+        <div class="ep-stat"><span class="ep-sval">${totD}</span><span class="ep-slabel">يوم</span></div>
+        <div class="ep-stat"><span class="ep-sval">${types.length}</span><span class="ep-slabel">نوع</span></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openProfile(name){
+  const el=leaves.filter(l=>l.emp===name).sort((a,b)=>b.start.localeCompare(a.start));
+  const totD=el.reduce((s,l)=>s+db(l.start,l.end),0);
+  const td=today();
+  const onNow=el.filter(l=>l.start<=td&&l.end>=td).length;
+  document.getElementById('pmTitle').innerHTML=`<span style="display:inline-flex;align-items:center;gap:9px"><span style="width:28px;height:28px;border-radius:50%;background:${ec(name)};display:inline-flex;align-items:center;justify-content:center;font-weight:900;font-size:.8rem">${name.charAt(0)}</span>${name}</span>`;
+  document.getElementById('pmStats').innerHTML=`
+    <div class="pm-stat"><div class="pm-sval">${el.length}</div><div class="pm-slabel">إجمالي الإجازات</div></div>
+    <div class="pm-stat"><div class="pm-sval">${totD}</div><div class="pm-slabel">إجمالي الأيام</div></div>
+    <div class="pm-stat"><div class="pm-sval" style="color:var(--success)">${onNow}</div><div class="pm-slabel">في إجازة الآن</div></div>
+    <div class="pm-stat"><div class="pm-sval">${el.length?db(el[el.length-1].start,el[el.length-1].end):0}</div><div class="pm-slabel">أقل إجازة (أيام)</div></div>`;
+  const tc={};el.forEach(l=>{tc[l.type]=(tc[l.type]||0)+1;});
+  document.getElementById('pmTypeDist').innerHTML=Object.entries(tc).map(([k,v])=>`<span class="badge b-${TCLASS[k]}">${TYPES[k]}: ${v}</span>`).join('');
+  if(!el.length)document.getElementById('pmLeaveList').innerHTML='<div class="empty" style="padding:16px">لا توجد إجازات</div>';
+  else document.getElementById('pmLeaveList').innerHTML=el.map(l=>`<div class="pm-lrow"><span><span class="badge b-${TCLASS[l.type]}">${TYPES[l.type]}</span></span><span style="color:var(--text2)">${l.start} → ${l.end}</span><span style="font-weight:800">${db(l.start,l.end)} يوم</span></div>`).join('');
+  document.getElementById('profileModal').classList.add('open');
+}
+function closeProfile(){document.getElementById('profileModal').classList.remove('open');}
+
+// ── ADD ───────────────────────────────────────────
+function populateSel(){
+  ['addEmp','editEmp','fName'].forEach(id=>{
+    const el=document.getElementById(id);if(!el)return;
+    el.innerHTML=(id==='fName'?'<option value="">كل الموظفين</option>':'')+emps.map(e=>`<option value="${e}">${e}</option>`).join('');
+  });
+}
+function calcDays(){
+  const s=document.getElementById('addStart').value, e=document.getElementById('addEnd').value;
+  const p=document.getElementById('daysPrev');
+  if(s&&e&&s<=e)p.textContent=`📅 عدد الأيام: ${db(s,e)} يوم`;
+  else if(s&&e&&s>e)p.textContent='⚠️ تاريخ البداية بعد تاريخ النهاية!';
+  else p.textContent='اختر تواريخ لحساب عدد الأيام';
+}
+// ── فحص تداخل الإجازات ─────────────────────────────
+function findOverlap(emp,start,end,excludeId){
+  // يرجّع الإجازة المتداخلة إن وُجدت
+  return leaves.find(l=>
+    l.emp===emp &&
+    l.id!==excludeId &&
+    l.start<=end && l.end>=start
+  );
+}
+
+// ── استيراد Excel ──────────────────────────────────
+// تحويل تاريخ هجري "1447-03-15" إلى ميلادي "2025-09-07"
+function hijriToGreg(hStr){
+  const m=String(hStr).trim().match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if(!m) return null;
+  const hY=+m[1], hM=+m[2], hD=+m[3];
+  if(hM<1||hM>12||hD<1||hD>30) return null;
+  // بحث: نقدّر السنة الميلادية ثم نمشي يوم بيوم
+  const approx=Math.floor(hY*0.970224+621.5);
+  let t=new Date(approx,0,1);
+  for(let i=0;i<800;i++){
+    const p=getHijriParts(t);
+    if(p.year===hY&&p.month===hM&&p.day===hD){
+      return `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
+    }
+    // اتجاه البحث
+    const diff=(hY-p.year)*360+(hM-p.month)*30+(hD-p.day);
+    t.setDate(t.getDate()+(diff>0?Math.max(1,Math.min(diff,30)):Math.min(-1,Math.max(diff,-30))));
+  }
+  return null;
+}
+
+// تخمين نوع الإجازة من النص العربي
+function guessType(txt){
+  const s=String(txt||'').trim();
+  if(s.includes('تعويض'))return 'compensatory';
+  if(s.includes('سنوية')||s.includes('إعتيادية')||s.includes('اعتيادية'))return 'annual';
+  if(s.includes('مرافق'))return 'patient_escort';
+  if(s.includes('مرضية مطولة'))return 'sick_ext';
+  if(s.includes('مرضية')||s.includes('مرضي'))return 'sick';
+  if(s.includes('إضطرار')||s.includes('اضطرار')||s.includes('طارئ'))return 'emergency';
+  if(s.includes('وفاة'))return 'compassionate';
+  if(s.includes('أمومة')||s.includes('امومة'))return 'maternity';
+  if(s.includes('دراس'))return 'study';
+  if(s.includes('بدون راتب'))return 'unpaid';
+  if(s.includes('غياب'))return 'absence_comp';
+  if(s.includes('مناوبة'))return 'shift';
+  if(s.includes('تكليف'))return 'assignment';
+  if(s.includes('حج'))return 'hajj';
+  if(s.includes('بعد'))return 'remote';
+  return 'annual';
+}
+
+async function importExcel(input){
+  const file=input.files[0];
+  if(!file) return;
+  const status=document.getElementById('importStatus');
+  status.innerHTML='<span style="color:var(--text2)">⏳ جارٍ قراءة الملف...</span>';
+
+  try{
+    const buf=await file.arrayBuffer();
+    const wb=XLSX.read(buf,{type:'array'});
+
+    let added=0, rejectedOverlap=0, rejectedBad=0, newEmps=0;
+    const rejectedDetails=[];
+
+    for(const sheetName of wb.SheetNames){
+      // تجاهل ورقة الملخص
+      if(sheetName.includes('ملخص')||sheetName.includes('Summary')) continue;
+      const rows=XLSX.utils.sheet_to_json(wb.Sheets[sheetName],{defval:''});
+
+      for(const row of rows){
+        const emp=String(row['اسم الموظف']||'').trim();
+        const typeTxt=row['نوع الإجازة'];
+        const startH=row['بداية الإجازة'];
+        const endH=row['نهاية الإجازة'];
+
+        // تجاهل صفوف المجموع والصفوف الفارغة
+        if(!emp||!startH||!endH) continue;
+        if(String(endH).includes('المجموع')) continue;
+
+        const start=hijriToGreg(startH);
+        const end=hijriToGreg(endH);
+        if(!start||!end||start>end){
+          rejectedBad++;
+          rejectedDetails.push(`⚠️ ${emp}: تاريخ غير صالح (${startH} → ${endH})`);
+          continue;
+        }
+
+        // إضافة الموظف إن لم يكن موجوداً
+        if(!emps.includes(emp)){emps.push(emp);newEmps++;}
+
+        // ❌ فحص التداخل
+        const overlap=findOverlap(emp,start,end,null);
+        if(overlap){
+          rejectedOverlap++;
+          rejectedDetails.push(`❌ ${emp}: تداخل (${startH} → ${endH}) مع إجازة موجودة ${overlap.start} → ${overlap.end}`);
+          continue;
+        }
+
+        leaves.push({
+          id:Date.now().toString()+'_'+Math.random().toString(36).slice(2,7),
+          emp,
+          type:guessType(typeTxt),
+          start,end,
+          note:'مستورد من Excel'
+        });
+        added++;
+      }
+    }
+
+    save();
+    populateSel();
+    renderCal();
+
+    let html=`<div style="color:var(--success);font-weight:800">✅ تم استيراد ${added} إجازة بنجاح</div>`;
+    if(newEmps) html+=`<div style="color:var(--accent3)">👤 تمت إضافة ${newEmps} موظف جديد</div>`;
+    if(rejectedOverlap) html+=`<div style="color:var(--danger);font-weight:800">❌ رُفض ${rejectedOverlap} إجازة بسبب التداخل</div>`;
+    if(rejectedBad) html+=`<div style="color:var(--warning)">⚠️ تم تجاهل ${rejectedBad} صف بتواريخ غير صالحة</div>`;
+    if(rejectedDetails.length){
+      html+=`<details style="margin-top:8px;cursor:pointer"><summary style="color:var(--text2);font-size:.8rem">عرض التفاصيل (${rejectedDetails.length})</summary>
+        <div style="max-height:200px;overflow-y:auto;margin-top:6px;font-size:.75rem;color:var(--text2);line-height:1.9">${rejectedDetails.join('<br>')}</div></details>`;
+    }
+    status.innerHTML=html;
+    toast(`📥 استيراد: ${added} ✅ / ${rejectedOverlap} مرفوض تداخل`);
+
+  }catch(e){
+    status.innerHTML=`<span style="color:var(--danger)">❌ خطأ في قراءة الملف: ${e.message}</span>`;
+  }
+  input.value='';
+}
+
+function saveLeave(){
+  const emp=document.getElementById('addEmp').value, type=document.getElementById('addType').value;
+  const start=document.getElementById('addStart').value, end=document.getElementById('addEnd').value;
+  const note=document.getElementById('addNote').value;
+  if(!emp||!start||!end){toast('⚠️ يرجى ملء جميع الحقول',true);return;}
+  if(start>end){toast('⚠️ تاريخ البداية بعد تاريخ النهاية',true);return;}
+
+  // ❌ منع التداخل: نفس الموظف لديه إجازة في هذه الفترة
+  const overlap=findOverlap(emp,start,end,editId);
+  if(overlap){
+    toast(`❌ مرفوض: ${emp} لديه إجازة من ${overlap.start} إلى ${overlap.end} (${TYPES[overlap.type]||overlap.type})`,true);
+    return;
+  }
+
+  if(editId){
+    leaves=leaves.map(l=>l.id===editId?{...l,emp,type,start,end,note}:l);
+    save();cancelEdit();toast('✅ تم تعديل الإجازة بنجاح');return;
+  }
+  leaves.push({id:Date.now().toString(),emp,type,start,end,note});
+  save();
+  toast(`✅ تم حفظ إجازة ${emp}`);
+  ['addStart','addEnd','addNote'].forEach(id=>document.getElementById(id).value='');
+  ['addStart','addEnd'].forEach(id=>{
+    const d=document.getElementById(id+'-display');
+    if(d){d.textContent='اضغط لاختيار التاريخ';d.classList.add('placeholder');}
+  });
+  document.getElementById('daysPrev').textContent='اختر تواريخ لحساب عدد الأيام';
+}
+function cancelEdit(){
+  editId=null;
+  document.getElementById('formTitle').textContent='➕ إضافة إجازة جديدة';
+  document.getElementById('saveBtn').textContent='✅ حفظ الإجازة';
+  document.getElementById('cancelBtn').style.display='none';
+  ['addStart','addEnd'].forEach(id=>{
+    document.getElementById(id).value='';
+    const d=document.getElementById(id+'-display');
+    if(d){d.textContent='اضغط لاختيار التاريخ';d.classList.add('placeholder');}
+  });
+}
+
+// ── EDIT MODAL ────────────────────────────────────
+function openEdit(id){
+  const l=leaves.find(x=>x.id===id);if(!l)return;
+  populateSel();
+  document.getElementById('editEmp').value=l.emp;
+  document.getElementById('editType').value=l.type;
+  document.getElementById('editStart').value=l.start;
+  document.getElementById('editEnd').value=l.end;
+  document.getElementById('editNote').value=l.note||'';
+  setEditDateDisplay('editStart',l.start);
+  setEditDateDisplay('editEnd',l.end);
+  editId=id;
+  document.getElementById('editModal').classList.add('open');
+}
+function saveEdit(){
+  const emp=document.getElementById('editEmp').value,type=document.getElementById('editType').value;
+  const start=document.getElementById('editStart').value,end=document.getElementById('editEnd').value;
+  const note=document.getElementById('editNote').value;
+  if(!start||!end||start>end){toast('⚠️ تحقق من التواريخ',true);return;}
+
+  // ❌ منع التداخل عند التعديل أيضاً
+  const overlap=findOverlap(emp,start,end,editId);
+  if(overlap){
+    toast(`❌ مرفوض: ${emp} لديه إجازة من ${overlap.start} إلى ${overlap.end} (${TYPES[overlap.type]||overlap.type})`,true);
+    return;
+  }
+
+  leaves=leaves.map(l=>l.id===editId?{...l,emp,type,start,end,note}:l);
+  save();closeEdit();renderList();toast('✅ تم التعديل بنجاح');
+}
+function closeEdit(){document.getElementById('editModal').classList.remove('open');editId=null;}
+
+// ── DELETE ────────────────────────────────────────
+function delLeave(id){
+  if(!confirm('هل أنت متأكد من حذف هذه الإجازة؟'))return;
+  leaves=leaves.filter(l=>l.id!==id);save();renderList();toast('🗑️ تم الحذف');
+}
+
+// ── MANAGE EMPLOYEES ──────────────────────────────
+function renderManage(){
+  document.getElementById('empBadge').textContent=`${emps.length} موظف`;
+  document.getElementById('empMgmt').innerHTML=emps.map((e,i)=>`
+    <div class="emp-item">
+      <span style="display:flex;align-items:center;gap:8px"><span style="width:10px;height:10px;border-radius:50%;background:${ec(e)};display:inline-block"></span>${e}</span>
+      <button class="abtn del" onclick="removeEmp(${i})">🗑️ حذف</button>
+    </div>`).join('');
+}
+function addEmp(){
+  const n=document.getElementById('newEmp').value.trim();
+  if(!n){toast('⚠️ أدخل اسم الموظف',true);return;}
+  if(emps.includes(n)){toast('⚠️ الاسم موجود مسبقاً',true);return;}
+  emps.push(n);save();document.getElementById('newEmp').value='';
+  renderManage();document.getElementById('empBadge').textContent=`${emps.length} موظف`;
+  toast(`✅ تم إضافة ${n}`);
+}
+function removeEmp(i){
+  const name=emps[i];
+  const cnt=leaves.filter(l=>l.emp===name).length;
+  const msg=cnt?`سيتم حذف "${name}" وكل إجازاته (${cnt} إجازة). متأكد؟`:`حذف "${name}"؟`;
+  if(!confirm(msg))return;
+  if(cnt)leaves=leaves.filter(l=>l.emp!==name);
+  emps.splice(i,1);save();renderManage();
+  document.getElementById('empBadge').textContent=`${emps.length} موظف`;
+  toast(`🗑️ تم حذف ${name}`);
+}
+
+// ── CUSTOM CALENDAR PICKER ────────────────────────
+let cpField=null, cpY=new Date().getFullYear(), cpM=new Date().getMonth(), cpLang='ar';
+
+const AR_MONTHS=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+const EN_MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const AR_DAYS=['أح','إث','ثل','أر','خم','جم','سب'];
+const EN_DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+function openCal(fieldId){
+  cpField=fieldId;
+  const existing=document.getElementById(fieldId).value;
+  if(existing){
+    const d=new Date(existing);cpY=d.getFullYear();cpM=d.getMonth();
+  } else {
+    // عند فتح "إلى تاريخ" → ابدأ من شهر "من تاريخ" إن وُجد
+    let anchor='';
+    if(fieldId==='addEnd') anchor=document.getElementById('addStart').value;
+    else if(fieldId==='editEnd') anchor=document.getElementById('editStart').value;
+    else if(fieldId==='calFEnd') anchor=document.getElementById('calFStart').value;
+    if(anchor){const d=new Date(anchor);cpY=d.getFullYear();cpM=d.getMonth();}
+    else{cpY=new Date().getFullYear();cpM=new Date().getMonth();}
+  }
+  document.getElementById('calPickerModal').style.display='flex';
+  renderCpGrid();
+}
+function closeCal(){document.getElementById('calPickerModal').style.display='none';cpField=null;}
+function cpPrevM(){if(cpM===0){cpM=11;cpY--;}else cpM--;renderCpGrid();}
+function cpNextM(){if(cpM===11){cpM=0;cpY++;}else cpM++;renderCpGrid();}
+function cpGoToHijri(hYear,hMonth){
+  const approxGregYear=Math.floor(hYear*0.970224+621.5);
+  let testDate=new Date(approxGregYear,0,1);
+  let found=null;
+  for(let i=0;i<1200;i++){
+    const p=getHijriParts(testDate);
+    if(p.year===hYear&&p.month===hMonth){found=new Date(testDate);break;}
+    if(p.year<hYear||(p.year===hYear&&p.month<hMonth)) testDate.setDate(testDate.getDate()+1);
+    else testDate.setDate(testDate.getDate()-1);
+  }
+  if(found){cpY=found.getFullYear();cpM=found.getMonth();}
+  renderCpGrid();
+}
+function cpSetLang(l){
+  cpLang=l;
+  document.getElementById('calPickerModal').style.direction=l==='ar'?'rtl':'ltr';
+  document.getElementById('cpLangAr').style.background=l==='ar'?'#e63946':'#152540';
+  document.getElementById('cpLangAr').style.color=l==='ar'?'#fff':'#7a9fc2';
+  document.getElementById('cpLangEn').style.background=l==='en'?'#e63946':'#152540';
+  document.getElementById('cpLangEn').style.color=l==='en'?'#fff':'#7a9fc2';
+  renderCpGrid();
+}
+function renderCpGrid(){
+  const months=cpLang==='ar'?AR_MONTHS:EN_MONTHS;
+  const days=cpLang==='ar'?AR_DAYS:EN_DAYS;
+
+  // العنوان: قوائم منسدلة شهر + سنة + عنوان حسب اللغة
+  const hijriTitle=new Date(cpY,cpM,15).toLocaleDateString('ar-SA-u-ca-islamic',{month:'long',year:'numeric'});
+  const gregTitle=months[cpM]+' '+cpY;
+  const yearNow=new Date().getFullYear();
+  let monthOpts='', yearOpts='', mChange='', yChange='';
+
+  if(cpLang==='ar'){
+    const cur=getHijriParts(new Date(cpY,cpM,15));
+    monthOpts=HIJRI_MONTHS.map((m,i)=>`<option value="${i+1}" ${(i+1)===cur.month?'selected':''}>${m}</option>`).join('');
+    for(let yy=cur.year-3;yy<=cur.year+5;yy++) yearOpts+=`<option value="${yy}" ${yy===cur.year?'selected':''}>${yy} هـ</option>`;
+    mChange=`cpGoToHijri(${cur.year}, +this.value)`;
+    yChange=`cpGoToHijri(+this.value, ${cur.month})`;
+  } else {
+    monthOpts=months.map((m,i)=>`<option value="${i}" ${i===cpM?'selected':''}>${m}</option>`).join('');
+    for(let yy=yearNow-3;yy<=yearNow+5;yy++) yearOpts+=`<option value="${yy}" ${yy===cpY?'selected':''}>${yy}</option>`;
+    mChange='cpM=+this.value;renderCpGrid()';
+    yChange='cpY=+this.value;renderCpGrid()';
+  }
+
+  const bigT = cpLang==='ar' ? hijriTitle : gregTitle;
+  const subT = cpLang==='ar' ? gregTitle : hijriTitle;
+  document.getElementById('cpTitle').innerHTML=
+    `<div style="text-align:center;line-height:1.5">
+       <div style="font-size:1rem;font-weight:900;color:#e0ecff;margin-bottom:6px">${bigT}</div>
+       <div style="display:flex;gap:6px;justify-content:center;align-items:center;flex-wrap:wrap">
+         <select onchange="${mChange}" style="background:#152540;border:1px solid #243a5e;color:#e0ecff;padding:5px 10px;border-radius:9px;font-family:'Cairo',sans-serif;font-size:.85rem;font-weight:800;cursor:pointer;outline:none;">${monthOpts}</select>
+         <select onchange="${yChange}" style="background:#152540;border:1px solid #243a5e;color:#e0ecff;padding:5px 10px;border-radius:9px;font-family:'Cairo',sans-serif;font-size:.85rem;font-weight:800;cursor:pointer;outline:none;">${yearOpts}</select>
+       </div>
+       <div style="font-size:.72rem;color:#7a9fc2;margin-top:5px">${subT}</div>
+     </div>`;
+
+  const startVal=document.getElementById('addStart')?.value||document.getElementById('editStart')?.value||'';
+  const endVal=document.getElementById('addEnd')?.value||document.getElementById('editEnd')?.value||'';
+  const tdStr=today();
+
+  let html=days.map(d=>`<div class="cp-dh">${d}</div>`).join('');
+  const first=new Date(cpY,cpM,1).getDay();
+  const total=new Date(cpY,cpM+1,0).getDate();
+  const prevTotal=new Date(cpY,cpM,0).getDate();
+
+  // prev month days
+  for(let i=first-1;i>=0;i--){
+    html+=`<div class="cp-day other-month"><div>${prevTotal-i}</div></div>`;
+  }
+  for(let d=1;d<=total;d++){
+    const ds=`${cpY}-${String(cpM+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    // الرقم الهجري
+    const hijriDay=new Date(cpY,cpM,d).toLocaleDateString('ar-SA-u-ca-islamic',{day:'numeric'});
+    let cls='cp-day';
+    if(ds===tdStr)cls+=' today';
+    if(ds===startVal||ds===endVal)cls+=' selected';
+    else if(startVal&&endVal&&ds>startVal&&ds<endVal)cls+=' in-range';
+    html+=`<div class="${cls}" onclick="cpSelect('${ds}')">
+      <div style="font-size:1.05rem;font-weight:900;line-height:1.2">${d}</div>
+      <div style="font-size:.7rem;opacity:.65;line-height:1">${hijriDay}</div>
+    </div>`;
+  }
+  // next month fill
+  const total42=Math.ceil((first+total)/7)*7;
+  for(let d=1;d<=(total42-first-total);d++){
+    html+=`<div class="cp-day other-month"><div>${d}</div></div>`;
+  }
+  document.getElementById('cpGrid').innerHTML=html;
+}
+
+function cpSelect(ds){
+  if(!cpField) return;
+  document.getElementById(cpField).value=ds;
+  const dispId=cpField+'-display';
+  const dispEl=document.getElementById(dispId);
+  if(dispEl){
+    const d=new Date(ds);
+    const milAr=d.toLocaleDateString('ar-SA-u-ca-gregory',{year:'numeric',month:'long',day:'numeric'});
+    const milEn=d.toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
+    const hijri=d.toLocaleDateString('ar-SA-u-ca-islamic',{day:'numeric',month:'long',year:'numeric'});
+    const mil=cpLang==='ar'?milAr:milEn;
+    dispEl.innerHTML=`<span style="display:block;font-size:.9rem;font-weight:800">${mil}</span><span style="display:block;font-size:.72rem;color:var(--text2);margin-top:2px">🗓️ ${hijri}</span>`;
+    dispEl.classList.remove('placeholder');
+  }
+  closeCal();
+  // إذا كان الفلتر → حدّث التقويم
+  if(cpField==='calFStart'||cpField==='calFEnd'){
+    calFilterStart=document.getElementById('calFStart').value;
+    calFilterEnd=document.getElementById('calFEnd').value;
+    renderCal();
+  } else {
+    calcDays();
+  }
+}
+
+function clearCalFilter(){
+  calFilterStart=''; calFilterEnd='';
+  document.getElementById('calFStart').value='';
+  document.getElementById('calFEnd').value='';
+  ['calFStart','calFEnd'].forEach(id=>{
+    const d=document.getElementById(id+'-display');
+    if(d){d.innerHTML='اضغط لاختيار';d.className='dp-val placeholder';}
+  });
+  renderCal();
+}
+
+// Update display for edit modal date fields
+function setEditDateDisplay(fieldId, val){
+  const dispEl=document.getElementById(fieldId+'-display');
+  if(dispEl&&val){
+    const d=new Date(val);
+    const mil=d.toLocaleDateString('ar-SA-u-ca-gregory',{year:'numeric',month:'long',day:'numeric'});
+    const hijri=d.toLocaleDateString('ar-SA-u-ca-islamic',{day:'numeric',month:'long',year:'numeric'});
+    dispEl.innerHTML=`<span style="display:block;font-size:.9rem;font-weight:800">${mil}</span><span style="display:block;font-size:.72rem;color:var(--text2);margin-top:2px">🗓️ ${hijri}</span>`;
+    dispEl.classList.remove('placeholder');
+  }
+}
+
+// INIT
+loadData();
+</script>
+</body>
+</html>
