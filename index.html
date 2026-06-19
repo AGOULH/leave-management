@@ -834,29 +834,50 @@ function renderCal(){
   // ════ عرض متعدد الأشهر عند وجود فلتر يمتد لأكثر من شهر ════
   if(fStart&&fEnd){
     const sD=new Date(fStart+'T00:00:00'), eD=new Date(fEnd+'T00:00:00');
-    const monthsSpan=(eD.getFullYear()-sD.getFullYear())*12+(eD.getMonth()-sD.getMonth());
-    if(monthsSpan>=1){
-      // اجمع عطل كل السنوات ضمن الفترة
-      const allHol={};
-      for(let yy=sD.getFullYear();yy<=eD.getFullYear();yy++){
-        getSaudiHolidays(yy).forEach(h=>{allHol[h.date]=h;});
+
+    if(calMode==='ar'){
+      // ── الوضع الهجري: اعرض كل الأشهر الهجرية ضمن الفترة ──
+      const sH=getHijriParts(sD), eH=getHijriParts(eD);
+      const hijriSpan=(eH.year-sH.year)*12+(eH.month-sH.month);
+      if(hijriSpan>=1){
+        const allHol={};
+        for(let yy=sD.getFullYear();yy<=eD.getFullYear()+1;yy++){
+          getSaudiHolidays(yy).forEach(h=>{allHol[h.date]=h;});
+        }
+        document.getElementById('calGrid').style.display='none';
+        let multi=document.getElementById('calMultiMonth');
+        if(!multi){multi=document.createElement('div');multi.id='calMultiMonth';document.getElementById('calGrid').parentElement.appendChild(multi);}
+        multi.style.display='block';
+        let blocks='';
+        let hy=sH.year, hm=sH.month;
+        for(let k=0;k<=hijriSpan;k++){
+          blocks+=buildHijriMonthBlock(hy,hm,allHol,fStart,fEnd,td);
+          if(hm===12){hm=1;hy++;}else hm++;
+        }
+        multi.innerHTML=blocks;
+        return;
       }
-      document.getElementById('calGrid').style.display='none';
-      let multi=document.getElementById('calMultiMonth');
-      if(!multi){
-        multi=document.createElement('div');
-        multi.id='calMultiMonth';
-        document.getElementById('calGrid').parentElement.appendChild(multi);
+    } else {
+      // ── الوضع الميلادي: اعرض كل الأشهر الميلادية ضمن الفترة ──
+      const monthsSpan=(eD.getFullYear()-sD.getFullYear())*12+(eD.getMonth()-sD.getMonth());
+      if(monthsSpan>=1){
+        const allHol={};
+        for(let yy=sD.getFullYear();yy<=eD.getFullYear();yy++){
+          getSaudiHolidays(yy).forEach(h=>{allHol[h.date]=h;});
+        }
+        document.getElementById('calGrid').style.display='none';
+        let multi=document.getElementById('calMultiMonth');
+        if(!multi){multi=document.createElement('div');multi.id='calMultiMonth';document.getElementById('calGrid').parentElement.appendChild(multi);}
+        multi.style.display='block';
+        let blocks='';
+        let my=sD.getFullYear(), mm=sD.getMonth();
+        for(let k=0;k<=monthsSpan;k++){
+          blocks+=buildMonthBlock(my,mm,allHol,fStart,fEnd,td);
+          if(mm===11){mm=0;my++;}else mm++;
+        }
+        multi.innerHTML=blocks;
+        return;
       }
-      multi.style.display='block';
-      let blocks='';
-      let my=sD.getFullYear(), mm=sD.getMonth();
-      for(let k=0;k<=monthsSpan;k++){
-        blocks+=buildMonthBlock(my,mm,allHol,fStart,fEnd,td);
-        if(mm===11){mm=0;my++;}else mm++;
-      }
-      multi.innerHTML=blocks;
-      return;
     }
   }
   // وضع الشهر الواحد العادي
@@ -930,6 +951,45 @@ function buildMonthBlock(year,month,holidayMap,fStart,fEnd,td){
   const total=new Date(year,month+1,0).getDate();
   for(let i=0;i<first;i++) cells+=`<div class="cal-day empty"></div>`;
   for(let d=1;d<=total;d++) cells+=buildDayCell(year,month,d,holidayMap,fStart,fEnd,td);
+
+  return `<div style="margin-bottom:24px">
+    <div style="font-size:1.1rem;font-weight:900;color:var(--text);margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid var(--accent);">${title}</div>
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px">${cells}</div>
+  </div>`;
+}
+
+// ── بناء كتلة شهر هجري كامل ────────────────────────
+function buildHijriMonthBlock(hYear,hMonth,holidayMap,fStart,fEnd,td){
+  // أوجد التاريخ الميلادي لليوم الأول من الشهر الهجري
+  const approx=Math.floor(hYear*0.970224+621.5);
+  let firstGreg=null;
+  let t=new Date(approx,0,1);
+  for(let i=0;i<800;i++){
+    const p=getHijriParts(t);
+    if(p.year===hYear&&p.month===hMonth&&p.day===1){firstGreg=new Date(t);break;}
+    const diff=(hYear-p.year)*360+(hMonth-p.month)*30+(1-p.day);
+    t.setDate(t.getDate()+(diff>0?Math.max(1,Math.min(diff,30)):Math.min(-1,Math.max(diff,-30))));
+  }
+  if(!firstGreg) return '';
+
+  const hMonthName=HIJRI_MONTHS[hMonth-1];
+  // عنوان الكتلة
+  const gregLabel=firstGreg.toLocaleDateString('ar-SA-u-ca-gregory',{month:'long',year:'numeric'});
+  const title=`${hMonthName} ${hYear} هـ — <span style="color:var(--text3);font-size:.85rem">${gregLabel}</span>`;
+
+  let cells=DAYS.map(d=>`<div class="cal-dh" style="font-size:.8rem;font-weight:800;padding:7px 2px;color:var(--text2)">${d}</div>`).join('');
+  // فراغات بداية الأسبوع
+  const firstWeekday=firstGreg.getDay();
+  for(let i=0;i<firstWeekday;i++) cells+=`<div class="cal-day empty"></div>`;
+
+  // مرّ على أيام الشهر الهجري (حتى 30 يوماً)
+  let cur=new Date(firstGreg);
+  for(let hd=1;hd<=30;hd++){
+    const p=getHijriParts(cur);
+    if(p.month!==hMonth||p.year!==hYear) break; // انتهى الشهر الهجري
+    cells+=buildDayCell(cur.getFullYear(),cur.getMonth(),cur.getDate(),holidayMap,fStart,fEnd,td);
+    cur.setDate(cur.getDate()+1);
+  }
 
   return `<div style="margin-bottom:24px">
     <div style="font-size:1.1rem;font-weight:900;color:var(--text);margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid var(--accent);">${title}</div>
