@@ -306,6 +306,7 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 <div class="nav">
   <button class="tab active" onclick="sw('calendar',this)">📅 التقويم</button>
   <button class="tab" onclick="sw('list',this)">📋 القائمة</button>
+  <button class="tab" onclick="sw('prelim',this)">🗓️ حجز مبدئي</button>
   <button class="tab" onclick="sw('conflicts',this)">⚠️ التداخلات</button>
   <button class="tab" onclick="sw('stats',this)">📊 الإحصائيات</button>
   <button class="tab" onclick="sw('profiles',this)">👤 الموظفون</button>
@@ -405,6 +406,83 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
   <!-- بطاقات الإجازات -->
   <div id="leaveCards"></div>
   <div id="listEmpty" class="empty" style="display:none"><div class="ei">📭</div>لا توجد إجازات</div>
+
+</div>
+
+<!-- PRELIMINARY BOOKING (reminder list before official approval) -->
+<div id="pane-prelim" class="pane">
+
+  <div class="card" style="border-color:rgba(180,83,9,.3);">
+    <div class="sec-title">🔔 تذكير دوري بطلب الإجازات المستقبلية</div>
+    <div id="prelimReminderBanner"></div>
+  </div>
+
+  <div class="card">
+    <div class="sec-title" id="prelimFormTitle">➕ إضافة حجز مبدئي</div>
+    <div style="font-size:.82rem;color:var(--text2);margin-bottom:14px;line-height:1.8;">
+      قائمة تذكيرية للإجازات المستقبلية التي يخبر بها الموظفون قبل اعتمادها رسمياً — ليست إجازة معتمدة. عند تعارض التواريخ لنفس الموظف يظهر تنبيه فقط دون رفض الحفظ.
+    </div>
+    <div class="fgrid">
+      <div class="fg">
+        <label class="flabel">الموظف</label>
+        <select class="fc" id="prelimEmp"></select>
+      </div>
+      <div class="fg">
+        <label class="flabel">نوع الإجازة المتوقع</label>
+        <select class="fc" id="prelimType">
+          <option value="annual">سنوية</option>
+          <option value="sick">مرضية</option>
+          <option value="emergency">اضطراري</option>
+          <option value="maternity">أمومة</option>
+          <option value="study">دراسية</option>
+          <option value="unpaid">بدون راتب</option>
+          <option value="shift">بدل مناوبة</option>
+          <option value="assignment">بدل تكليف</option>
+          <option value="hajj">إجازة حج</option>
+          <option value="sick_ext">مرضية مطولة</option>
+          <option value="compassionate">إجازة وفاة</option>
+          <option value="remote">عمل عن بُعد</option>
+          <option value="compensatory">تعويضية</option>
+          <option value="patient_escort">مرافقة مريض</option>
+          <option value="absence_comp">بدل أيام غياب</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label class="flabel">📅 من تاريخ</label>
+        <div class="date-picker-wrap" onclick="openCal('prelimStart')">
+          <span class="dp-icon">📅</span>
+          <span class="dp-val placeholder" id="prelimStart-display">اضغط لاختيار التاريخ</span>
+          <input type="hidden" id="prelimStart">
+        </div>
+      </div>
+      <div class="fg">
+        <label class="flabel">📅 إلى تاريخ</label>
+        <div class="date-picker-wrap" onclick="openCal('prelimEnd')">
+          <span class="dp-icon">📅</span>
+          <span class="dp-val placeholder" id="prelimEnd-display">اضغط لاختيار التاريخ</span>
+          <input type="hidden" id="prelimEnd">
+        </div>
+      </div>
+      <div class="fg ffull">
+        <label class="flabel">ملاحظة (اختياري)</label>
+        <input type="text" class="fc" id="prelimNote" placeholder="مثال: طلب مبدئي لإجازة صيفية...">
+      </div>
+      <div class="fg ffull">
+        <div class="dprev" id="prelimDaysPrev">اختر تواريخ لحساب عدد الأيام</div>
+      </div>
+      <div class="fg ffull" style="display:flex;gap:9px;justify-content:flex-end;flex-wrap:wrap;">
+        <button class="btn-s" id="prelimCancelBtn" onclick="cancelPrelimEdit()" style="display:none;">إلغاء التعديل</button>
+        <button class="btn-p" id="prelimSaveBtn" onclick="savePrelim()">✅ حفظ الحجز المبدئي</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="sec-title">📋 قائمة الحجوزات المبدئية</div>
+    <div id="prelimCount" style="font-size:.82rem;color:var(--text2);margin-bottom:10px;"></div>
+    <div id="prelimCards"></div>
+    <div id="prelimEmpty" class="empty" style="display:none"><div class="ei">🗓️</div>لا توجد حجوزات مبدئية بعد</div>
+  </div>
 
 </div>
 
@@ -653,8 +731,12 @@ const DAYS=['الأحد','الإثنين','الثلاثاء','الأربعاء',
 
 let emps=[...DEF_EMPS];
 let leaves=[];
+let prelim=[];
+let prelimLastReq='';
+let prelimReminderDays=90;
 let cy=new Date().getFullYear(), cm=new Date().getMonth();
 let editId=null;
+let prelimEditId=null;
 let isSaving=false;
 
 // ── تحميل البيانات من السحابة عند فتح الصفحة ────────
@@ -664,6 +746,9 @@ async function loadData(){
   if(BIN_ID.includes('ضع_')){
     emps=JSON.parse(localStorage.getItem('bb_emps')||'null')||[...DEF_EMPS];
     leaves=JSON.parse(localStorage.getItem('bb_leaves')||'[]');
+    prelim=JSON.parse(localStorage.getItem('bb_prelim')||'[]');
+    prelimLastReq=localStorage.getItem('bb_prelim_lastreq')||'';
+    prelimReminderDays=+(localStorage.getItem('bb_prelim_interval')||90);
     showLoader(false);
     showSetupBanner();
     populateSel();renderCal();
@@ -675,10 +760,16 @@ async function loadData(){
     const d=await r.json();
     leaves=d.record.leaves||[];
     emps=d.record.emps||[...DEF_EMPS];
+    prelim=d.record.prelim||[];
+    prelimLastReq=d.record.prelimLastReq||'';
+    prelimReminderDays=d.record.prelimReminderDays||90;
   }catch(e){
     // fallback to localStorage if offline
     emps=JSON.parse(localStorage.getItem('bb_emps')||'null')||[...DEF_EMPS];
     leaves=JSON.parse(localStorage.getItem('bb_leaves')||'[]');
+    prelim=JSON.parse(localStorage.getItem('bb_prelim')||'[]');
+    prelimLastReq=localStorage.getItem('bb_prelim_lastreq')||'';
+    prelimReminderDays=+(localStorage.getItem('bb_prelim_interval')||90);
     toast('⚠️ تعذّر الاتصال — يُعرض آخر حفظ محلي',true);
   }
   showLoader(false);
@@ -690,6 +781,9 @@ async function save(){
   // حفظ محلي فوري كنسخة احتياطية
   localStorage.setItem('bb_leaves',JSON.stringify(leaves));
   localStorage.setItem('bb_emps',JSON.stringify(emps));
+  localStorage.setItem('bb_prelim',JSON.stringify(prelim));
+  localStorage.setItem('bb_prelim_lastreq',prelimLastReq);
+  localStorage.setItem('bb_prelim_interval',String(prelimReminderDays));
   if(BIN_ID.includes('ضع_')) return;
   if(isSaving) return;
   isSaving=true;
@@ -698,7 +792,7 @@ async function save(){
     await fetch(BIN_URL,{
       method:'PUT',
       headers:{'Content-Type':'application/json','X-Master-Key':API_KEY},
-      body:JSON.stringify({leaves,emps})
+      body:JSON.stringify({leaves,emps,prelim,prelimLastReq,prelimReminderDays})
     });
     setSyncIcon('☁️✅');
     setTimeout(()=>setSyncIcon('☁️'),2500);
@@ -738,6 +832,7 @@ function sw(name,btn){
   btn.classList.add('active');
   if(name==='calendar')renderCal();
   if(name==='list')renderList();
+  if(name==='prelim'){populateSel();renderPrelim();}
   if(name==='conflicts')renderConf();
   if(name==='stats')renderStats();
   if(name==='profiles')renderProfiles();
@@ -1234,7 +1329,7 @@ function closeProfile(){document.getElementById('profileModal').classList.remove
 
 // ── ADD ───────────────────────────────────────────
 function populateSel(){
-  ['addEmp','editEmp','fName'].forEach(id=>{
+  ['addEmp','editEmp','fName','prelimEmp'].forEach(id=>{
     const el=document.getElementById(id);if(!el)return;
     el.innerHTML=(id==='fName'?'<option value="">كل الموظفين</option>':'')+emps.map(e=>`<option value="${e}">${e}</option>`).join('');
   });
@@ -1247,13 +1342,17 @@ function calcDays(){
   else p.textContent='اختر تواريخ لحساب عدد الأيام';
 }
 // ── فحص تداخل الإجازات ─────────────────────────────
-function findOverlap(emp,start,end,excludeId){
-  // يرجّع الإجازة المتداخلة إن وُجدت
-  return leaves.find(l=>
+function findOverlapIn(arr,emp,start,end,excludeId){
+  // يرجّع أول عنصر متداخل (إجازة أو حجز مبدئي) إن وُجد
+  return arr.find(l=>
     l.emp===emp &&
     l.id!==excludeId &&
     l.start<=end && l.end>=start
   );
+}
+function findOverlap(emp,start,end,excludeId){
+  // يرجّع الإجازة المعتمدة المتداخلة إن وُجدت
+  return findOverlapIn(leaves,emp,start,end,excludeId);
 }
 
 // ── استيراد Excel ──────────────────────────────────
@@ -1418,6 +1517,187 @@ function cancelEdit(){
   });
 }
 
+// ── PRELIMINARY BOOKING (تذكير قبل الاعتماد الرسمي) ─
+function calcPrelimDays(){
+  const s=document.getElementById('prelimStart').value, e=document.getElementById('prelimEnd').value;
+  const p=document.getElementById('prelimDaysPrev');
+  if(!p) return;
+  if(s&&e&&s<=e)p.textContent=`📅 عدد الأيام: ${db(s,e)} يوم`;
+  else if(s&&e&&s>e)p.textContent='⚠️ تاريخ البداية بعد تاريخ النهاية!';
+  else p.textContent='اختر تواريخ لحساب عدد الأيام';
+}
+
+function renderPrelim(){
+  const td=today();
+  const bannerEl=document.getElementById('prelimReminderBanner');
+  if(bannerEl){
+    const daysSince=prelimLastReq?Math.floor((new Date(td)-new Date(prelimLastReq))/86400000):null;
+    let statusColor,statusText;
+    if(daysSince===null){
+      statusColor='var(--danger)';
+      statusText='🔴 لم يُسجَّل أي طلب حجز مبدئي من الموظفين بعد';
+    } else if(daysSince<=Math.floor(prelimReminderDays*0.7)){
+      statusColor='var(--success)';
+      statusText=`🟢 آخر طلب قبل ${daysSince} يوم — لا حاجة للتذكير الآن`;
+    } else if(daysSince<=prelimReminderDays){
+      statusColor='var(--warning)';
+      statusText=`🟡 يقترب موعد التذكير — آخر طلب قبل ${daysSince} يوم`;
+    } else {
+      statusColor='var(--danger)';
+      statusText=`🔴 حان وقت طلب الإجازات المستقبلية من الموظفين — مضى ${daysSince} يوم على آخر طلب`;
+    }
+    bannerEl.innerHTML=`
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+        <div style="font-weight:800;color:${statusColor}">${statusText}</div>
+        <button class="btn-p" style="padding:8px 16px;font-size:.82rem" onclick="sendPrelimReminder()">🔔 تم إرسال الطلب الآن</button>
+      </div>
+      <div style="margin-top:10px;display:flex;align-items:center;gap:8px;font-size:.82rem;color:var(--text2)">
+        🔁 كل كم يوم أُذكَّر بطلب التحديث؟
+        <input type="number" min="7" step="1" value="${prelimReminderDays}" class="fc" style="width:75px;padding:6px 9px" onchange="setPrelimInterval(this.value)">
+        يوم
+      </div>`;
+  }
+
+  const container=document.getElementById('prelimCards');
+  const empty=document.getElementById('prelimEmpty');
+  const countEl=document.getElementById('prelimCount');
+  if(!prelim.length){
+    container.innerHTML='';
+    empty.style.display='block';
+    countEl.textContent='';
+    return;
+  }
+  empty.style.display='none';
+  countEl.textContent=`${prelim.length} حجز مبدئي`;
+  const sorted=[...prelim].sort((a,b)=>a.start.localeCompare(b.start));
+  container.innerHTML=sorted.map(p=>{
+    const days=db(p.start,p.end);
+    const confirmedConf=findOverlapIn(leaves,p.emp,p.start,p.end,null);
+    const otherConf=findOverlapIn(prelim,p.emp,p.start,p.end,p.id);
+    const hasConflict=confirmedConf||otherConf;
+    return`<div class="leave-card" style="${hasConflict?'border-color:rgba(220,38,38,.4)':'border-style:dashed'}">
+      <div class="lc-top">
+        <div class="lc-emp">
+          <div class="lc-avatar" style="background:${ec(p.emp)}">${p.emp.charAt(0)}</div>
+          <div>
+            <div class="lc-name">${p.emp}</div>
+            <div style="font-size:.75rem;color:var(--text3);margin-top:2px">⏳ حجز مبدئي — بانتظار الاعتماد</div>
+          </div>
+        </div>
+        <div class="lc-actions">
+          <button class="lc-edit" onclick="approvePrelim('${p.id}')" style="background:rgba(15,118,110,.1);border-color:rgba(15,118,110,.3);color:#0f766e">✅ اعتماد</button>
+          <button class="lc-edit" onclick="openEditPrelim('${p.id}')">✏️ تعديل</button>
+          <button class="lc-del" onclick="delPrelim('${p.id}')">🗑️ حذف</button>
+        </div>
+      </div>
+      <div class="lc-body">
+        <div class="lc-field"><div class="lc-flabel">نوع الإجازة المتوقع</div><div class="lc-fval"><span class="badge b-${TCLASS[p.type]||'annual'}">${TYPES[p.type]||'سنوية'}</span></div></div>
+        <div class="lc-field"><div class="lc-flabel">من تاريخ</div><div class="lc-fval">📅 ${p.start}</div></div>
+        <div class="lc-field"><div class="lc-flabel">إلى تاريخ</div><div class="lc-fval">📅 ${p.end}</div></div>
+        <div class="lc-field"><div class="lc-flabel">عدد الأيام</div><div class="lc-fval" style="font-size:1.1rem;color:var(--accent3)">${days} يوم</div></div>
+        ${p.note?`<div class="lc-note"><div class="lc-flabel">ملاحظة</div><div class="lc-fval" style="color:var(--text2)">${p.note}</div></div>`:''}
+        ${hasConflict?`<div class="lc-note" style="background:rgba(220,38,38,.08);color:var(--danger)">⚠️ ${confirmedConf?`يتعارض مع إجازة معتمدة لنفس الموظف (${confirmedConf.start} → ${confirmedConf.end})`:'يتعارض مع حجز مبدئي آخر لنفس الموظف'}</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function sendPrelimReminder(){
+  prelimLastReq=today();
+  save();
+  renderPrelim();
+  toast('🔔 تم تسجيل إرسال الطلب — سيتم التذكير بعد الفترة المحددة');
+}
+
+function setPrelimInterval(v){
+  const n=parseInt(v,10);
+  if(!n||n<7){toast('⚠️ الحد الأدنى 7 أيام',true);renderPrelim();return;}
+  prelimReminderDays=n;
+  save();
+  renderPrelim();
+}
+
+function savePrelim(){
+  const emp=document.getElementById('prelimEmp').value, type=document.getElementById('prelimType').value;
+  const start=document.getElementById('prelimStart').value, end=document.getElementById('prelimEnd').value;
+  const note=document.getElementById('prelimNote').value;
+  if(!emp||!start||!end){toast('⚠️ يرجى ملء جميع الحقول',true);return;}
+  if(start>end){toast('⚠️ تاريخ البداية بعد تاريخ النهاية',true);return;}
+
+  // تنبيه فقط دون رفض عند تعارض تواريخ نفس الموظف
+  const confirmedConf=findOverlapIn(leaves,emp,start,end,null);
+  const otherConf=findOverlapIn(prelim,emp,start,end,prelimEditId);
+  if(confirmedConf||otherConf) toast(`⚠️ تنبيه: يوجد تعارض بالتاريخ لدى ${emp} — تم الحفظ مع ذلك`,true);
+
+  if(prelimEditId){
+    prelim=prelim.map(p=>p.id===prelimEditId?{...p,emp,type,start,end,note}:p);
+    save();cancelPrelimEdit();renderPrelim();
+    if(!confirmedConf&&!otherConf) toast('✅ تم تعديل الحجز المبدئي');
+    return;
+  }
+  prelim.push({id:Date.now().toString()+'_'+Math.random().toString(36).slice(2,7),emp,type,start,end,note});
+  save();
+  if(!confirmedConf&&!otherConf) toast(`✅ تم حفظ حجز مبدئي لـ ${emp}`);
+  ['prelimStart','prelimEnd','prelimNote'].forEach(id=>document.getElementById(id).value='');
+  ['prelimStart','prelimEnd'].forEach(id=>{
+    const d=document.getElementById(id+'-display');
+    if(d){d.textContent='اضغط لاختيار التاريخ';d.classList.add('placeholder');}
+  });
+  document.getElementById('prelimDaysPrev').textContent='اختر تواريخ لحساب عدد الأيام';
+  renderPrelim();
+}
+
+function cancelPrelimEdit(){
+  prelimEditId=null;
+  document.getElementById('prelimFormTitle').textContent='➕ إضافة حجز مبدئي';
+  document.getElementById('prelimSaveBtn').textContent='✅ حفظ الحجز المبدئي';
+  document.getElementById('prelimCancelBtn').style.display='none';
+  ['prelimStart','prelimEnd'].forEach(id=>{
+    document.getElementById(id).value='';
+    const d=document.getElementById(id+'-display');
+    if(d){d.textContent='اضغط لاختيار التاريخ';d.classList.add('placeholder');}
+  });
+  document.getElementById('prelimDaysPrev').textContent='اختر تواريخ لحساب عدد الأيام';
+}
+
+function openEditPrelim(id){
+  const p=prelim.find(x=>x.id===id);if(!p)return;
+  populateSel();
+  document.getElementById('prelimEmp').value=p.emp;
+  document.getElementById('prelimType').value=p.type||'annual';
+  document.getElementById('prelimStart').value=p.start;
+  document.getElementById('prelimEnd').value=p.end;
+  document.getElementById('prelimNote').value=p.note||'';
+  setEditDateDisplay('prelimStart',p.start);
+  setEditDateDisplay('prelimEnd',p.end);
+  calcPrelimDays();
+  prelimEditId=id;
+  document.getElementById('prelimFormTitle').textContent='✏️ تعديل الحجز المبدئي';
+  document.getElementById('prelimSaveBtn').textContent='✅ حفظ التعديل';
+  document.getElementById('prelimCancelBtn').style.display='inline-block';
+  document.getElementById('pane-prelim').scrollIntoView({behavior:'smooth'});
+}
+
+function delPrelim(id){
+  if(!confirm('هل أنت متأكد من حذف هذا الحجز المبدئي؟'))return;
+  prelim=prelim.filter(p=>p.id!==id);save();renderPrelim();toast('🗑️ تم الحذف');
+}
+
+function approvePrelim(id){
+  const p=prelim.find(x=>x.id===id);if(!p)return;
+  const overlap=findOverlap(p.emp,p.start,p.end,null);
+  if(overlap){
+    toast(`❌ لا يمكن الاعتماد: ${p.emp} لديه إجازة معتمدة من ${overlap.start} إلى ${overlap.end} تتعارض مع هذا الحجز`,true);
+    return;
+  }
+  if(!confirm(`اعتماد حجز ${p.emp} من ${p.start} إلى ${p.end} كإجازة رسمية؟`))return;
+  leaves.push({id:Date.now().toString()+'_'+Math.random().toString(36).slice(2,7),emp:p.emp,type:p.type||'annual',start:p.start,end:p.end,note:p.note?`${p.note} (من حجز مبدئي)`:'من حجز مبدئي'});
+  prelim=prelim.filter(x=>x.id!==id);
+  save();
+  renderPrelim();
+  toast(`✅ تم اعتماد إجازة ${p.emp}`);
+}
+
 // ── EDIT MODAL ────────────────────────────────────
 function openEdit(id){
   const l=leaves.find(x=>x.id===id);if(!l)return;
@@ -1503,6 +1783,7 @@ function openCal(fieldId){
     if(fieldId==='addEnd') anchor=document.getElementById('addStart').value;
     else if(fieldId==='editEnd') anchor=document.getElementById('editStart').value;
     else if(fieldId==='calFEnd') anchor=document.getElementById('calFStart').value;
+    else if(fieldId==='prelimEnd') anchor=document.getElementById('prelimStart').value;
     if(anchor){const d=new Date(anchor);cpY=d.getFullYear();cpM=d.getMonth();}
     else{cpY=new Date().getFullYear();cpM=new Date().getMonth();}
   }
@@ -1623,6 +1904,8 @@ function cpSelect(ds){
     calFilterStart=document.getElementById('calFStart').value;
     calFilterEnd=document.getElementById('calFEnd').value;
     renderCal();
+  } else if(cpField==='prelimStart'||cpField==='prelimEnd'){
+    calcPrelimDays();
   } else {
     calcDays();
   }
