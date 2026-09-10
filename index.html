@@ -1339,10 +1339,17 @@ function renderProfiles(){
 }
 
 function openProfile(name){
-  const el=leaves.filter(l=>l.emp===name).sort((a,b)=>b.start.localeCompare(a.start));
+  const allEl=leaves.filter(l=>l.emp===name);
+  let el=allEl;
+  const fStart=profFilterStart, fEnd=profFilterEnd;
+  if(fStart||fEnd){
+    const s=new Date(fStart||'0001-01-01'), en=new Date(fEnd||'9999-12-31');
+    el=el.filter(l=>new Date(l.start)<=en&&new Date(l.end)>=s);
+  }
+  el=el.sort((a,b)=>b.start.localeCompare(a.start));
   const totD=el.reduce((s,l)=>s+db(l.start,l.end),0);
   const td=today();
-  const onNow=el.filter(l=>l.start<=td&&l.end>=td).length;
+  const onNow=allEl.filter(l=>l.start<=td&&l.end>=td).length;
   document.getElementById('pmTitle').innerHTML=`<span style="display:inline-flex;align-items:center;gap:9px"><span style="width:28px;height:28px;border-radius:50%;background:${ec(name)};display:inline-flex;align-items:center;justify-content:center;font-weight:900;font-size:.8rem">${name.charAt(0)}</span>${name}</span>`;
   document.getElementById('pmStats').innerHTML=`
     <div class="pm-stat"><div class="pm-sval">${el.length}</div><div class="pm-slabel">إجمالي الإجازات</div></div>
