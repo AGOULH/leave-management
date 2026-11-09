@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title data-en="Free membership — SIG">العضوية المجانية — SIG</title>
+<meta name="description" content="انضم مجاناً إلى المجموعة السعودية لعلم الدم المناعي واحصل على بطاقة عضوية رقمية وشهادات حضور إلكترونية.">
+<meta name="theme-color" content="#C8102E">
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-page="membership" data-demo-note>
+<div id="site-header"></div>
+<main>
+  <section class="page-hero"><div class="container" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(440px,100%),1fr));gap:40px;align-items:center">
+    <div class="stack" style="--gap:16px">
+      <span class="crumb" data-en="Home / Membership">الرئيسية / العضوية</span>
+      <span class="tag tag-red" data-en="Free membership">العضوية مجانية</span>
+      <h1 data-en="Join the Kingdom’s immunohaematology network">كن جزءاً من شبكة علم الدم المناعي في المملكة</h1>
+      <p data-en="SIG is an official scientific league for technologists, scientists, physicians and healthcare workers interested in immunohaematology and transfusion medicine, under the Saudi Society of Transfusion Medicine.">المجموعة رابطة علمية رسمية لكل الأخصائيين والعلماء والأطباء والعاملين الصحيين المهتمين بعلم الدم المناعي وطب نقل الدم، تحت مظلة الجمعية السعودية لطب نقل الدم.</p>
+      <div class="row" style="--gap:8px">
+        <span class="tag tag-outline" data-en="Technologists">أخصائيو المختبرات</span><span class="tag tag-outline" data-en="Scientists">العلماء والباحثون</span><span class="tag tag-outline" data-en="Physicians">الأطباء</span><span class="tag tag-outline" data-en="Nurses">التمريض</span><span class="tag tag-outline" data-en="Students">الطلاب</span>
+      </div>
+    </div>
+    <ul class="grid" style="--min:230px;--gap:12px;list-style:none;margin:0;padding:0">
+      <li class="card" style="padding:18px"><strong data-en="Scientific materials">المواد العلمية</strong><p data-en="Slides and materials from every SIG event.">عروض ومواد جميع فعاليات المجموعة.</p></li>
+      <li class="card" style="padding:18px"><strong data-en="Publications &amp; journals">المنشورات والمجلات</strong><p data-en="Member publications and links to international journals.">منشورات الأعضاء وروابط مجلات علمية دولية.</p></li>
+      <li class="card" style="padding:18px"><strong data-en="Digital membership card">بطاقة عضوية رقمية</strong><p data-en="With a QR code for fast event registration.">برمز QR للتسجيل السريع في الفعاليات.</p></li>
+      <li class="card" style="padding:18px"><strong data-en="Regular alerts">إشعارات منتظمة</strong><p data-en="Email alerts about meetings and events.">بالبريد عن الاجتماعات والفعاليات.</p></li>
+      <li class="card" style="padding:18px"><strong data-en="Online certificates">شهادات إلكترونية</strong><p data-en="Attendance certificates and CME hours in your portal.">شهادات الحضور وساعات التعليم المستمر في بوابتك.</p></li>
+      <li class="card" style="padding:18px"><strong data-en="Vote &amp; stand">التصويت والترشح</strong><p data-en="The right to vote and stand for the SIG board.">حق التصويت والترشح لمجلس إدارة المجموعة.</p></li>
+    </ul>
+  </div></section>
+
+  <div class="container split" style="padding-top:48px">
+    <form id="f-join" class="main panel panel-pad form" style="gap:26px" novalidate>
+      <div class="stack" style="--gap:4px"><h2 style="font-size:26px" data-en="Create a member account">إنشاء حساب عضو</h2><span class="muted" style="font-size:14.5px" data-en="Three short sections.">ثلاثة أقسام قصيرة.</span></div>
+      <fieldset class="stack" style="--gap:14px"><legend data-en="1. Sign-in details">1. بيانات الدخول</legend>
+        <div class="grid" style="--min:240px;--gap:14px">
+          <label class="field"><span data-en="Email">البريد الإلكتروني</span><input name="email" type="email" required autocomplete="email" dir="ltr"></label>
+          <label class="field"><span data-en="Password">كلمة المرور</span>
+            <span class="pw-wrap"><input name="password" type="password" required minlength="8" autocomplete="new-password" dir="ltr"><button type="button" id="pw-toggle" data-en="Show">إظهار</button></span>
+            <span class="hint" data-en="At least 8 characters.">8 أحرف على الأقل.</span></label>
+        </div>
+      </fieldset>
+      <fieldset class="stack" style="--gap:14px"><legend data-en="2. Personal details">2. البيانات الشخصية</legend>
+        <div class="grid" style="--min:180px;--gap:14px">
+          <label class="field"><span data-en="Title">اللقب</span><select name="title" required><option value="" data-en="Select">اختر</option><option value="prof" data-en="Prof.">أ.د.</option><option value="dr" data-en="Dr.">د.</option><option value="mr" data-en="Mr.">أ.</option><option value="ms" data-en="Ms.">أ.</option></select></label>
+          <label class="field"><span data-en="First name">الاسم الأول</span><input name="first" required autocomplete="given-name"></label>
+          <label class="field"><span data-en="Middle name">اسم الأب</span><input name="middle"></label>
+          <label class="field"><span data-en="Last name">اسم العائلة</span><input name="last" required autocomplete="family-name"></label>
+          <label class="field"><span data-en="Gender">الجنس</span><select name="gender" required><option value="" data-en="Select">اختر</option><option value="m" data-en="Male">ذكر</option><option value="f" data-en="Female">أنثى</option></select></label>
+          <label class="field"><span data-en="Nationality">الجنسية</span><select name="nationality" required>
+            <option value="" data-en="Select">اختر</option><option value="sa" data-en="Saudi Arabia">السعودية</option><option value="bh" data-en="Bahrain">البحرين</option><option value="kw" data-en="Kuwait">الكويت</option><option value="ae" data-en="UAE">الإمارات</option><option value="qa" data-en="Qatar">قطر</option><option value="om" data-en="Oman">عُمان</option><option value="eg" data-en="Egypt">مصر</option><option value="jo" data-en="Jordan">الأردن</option><option value="sd" data-en="Sudan">السودان</option><option value="in" data-en="India">الهند</option><option value="pk" data-en="Pakistan">باكستان</option><option value="ph" data-en="Philippines">الفلبين</option><option value="other" data-en="Other">أخرى</option>
+          </select></label>
+          <label class="field"><span data-en="Mobile number">رقم الجوال</span><input name="mobile" type="tel" required inputmode="tel" placeholder="05XXXXXXXX" dir="ltr"></label>
+        </div>
+      </fieldset>
+      <fieldset class="stack" style="--gap:14px"><legend data-en="3. Professional details">3. البيانات المهنية</legend>
+        <div class="grid" style="--min:240px;--gap:14px">
+          <label class="field"><span data-en="Professional category">الفئة المهنية</span><select name="category" required><option value="" data-en="Select">اختر</option><option value="tech" data-en="Technologist / technician">أخصائي / فني مختبر</option><option value="sci" data-en="Scientist / researcher">عالم / باحث</option><option value="phys" data-en="Physician">طبيب</option><option value="nurse" data-en="Nurse">تمريض</option><option value="student" data-en="Student">طالب</option><option value="other" data-en="Other">أخرى</option></select></label>
+          <label class="field"><span data-en="SCFHS registration no.">رقم التصنيف المهني</span><input name="schs" dir="ltr"></label>
+          <label class="field"><span data-en="Institution">جهة العمل</span><input name="org" required autocomplete="organization"></label>
+          <label class="field"><span data-en="Department">القسم</span><input name="dept"></label>
+          <label class="field"><span data-en="Job title">المسمى الوظيفي</span><input name="job" autocomplete="organization-title"></label>
+          <label class="field"><span data-en="Interest group">مجموعة الاهتمام</span><select name="interest"><option value="RCIIP" data-en="Red cells (RCIIP)">الكريات الحمراء (RCIIP)</option><option value="PLIIP" data-en="Platelets &amp; leucocytes (PLIIP)">الصفائح والكريات البيضاء (PLIIP)</option><option value="both" data-en="Both">كلاهما</option></select></label>
+        </div>
+      </fieldset>
+      <label class="consent"><input name="consent" type="checkbox" required><span data-en="I agree to the privacy policy and to receive event alerts by email.">أوافق على سياسة الخصوصية وعلى تلقي إشعارات الفعاليات بالبريد.</span></label>
+      <div class="form-msg err hidden" role="alert"></div>
+      <button type="submit" class="btn btn-primary" style="align-self:flex-start;min-height:52px;padding:0 32px" data-en="Create account">إنشاء الحساب</button>
+    </form>
+
+    <div id="join-done" class="main panel panel-pad stack hidden" style="--gap:20px;align-items:flex-start"></div>
+
+    <aside class="side stack" style="--gap:16px">
+      <div class="card card-rose">
+        <strong style="font-size:18px" data-en="Already a member?">لديك حساب؟</strong>
+        <p data-en="Sign in to see your card, certificates and registrations.">ادخل لبوابتك لعرض بطاقتك وشهاداتك وتسجيلاتك.</p>
+        <a class="btn btn-outline" href="portal.html" data-en="Member login">دخول الأعضاء</a>
+      </div>
+      <div class="card">
+        <strong data-en="Your data is protected">بياناتك محمية</strong>
+        <p data-en="Passwords are handled by the secure sign-in system and never stored by us; your details are visible only to you and SIG admins.">كلمة المرور يديرها نظام دخول آمن ولا نخزنها، وبياناتك لا يراها إلا أنت ومشرفو المجموعة.</p>
+      </div>
+    </aside>
+  </div>
+</main>
+<div id="site-footer"></div>
+<script src="assets/vendor/qrcode.js"></script>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/common.js"></script>
+<script src="assets/js/store.js"></script>
+<script src="assets/js/membership.js"></script>
+</body>
+</html>

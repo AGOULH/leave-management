@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title data-en="Membership card — SIG">بطاقة العضوية — SIG</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+<style>
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(380px,100%),1fr));gap:20px;padding:24px 0}
+  @media print{
+    @page{size:A4;margin:10mm}
+    .cards{grid-template-columns:repeat(2,85.6mm);gap:6mm;padding:0}
+    .member-card{width:85.6mm;height:54mm;max-width:none;aspect-ratio:auto;padding:4mm;box-shadow:none;border:0.3mm solid #F6CDD4;border-radius:3mm;break-inside:avoid}
+    .member-card strong{font-size:3.6mm !important}
+    .member-card .qr svg{width:24mm !important;height:24mm !important}
+  }
+</style>
+</head>
+<body class="soft">
+<main class="container">
+  <div class="row between no-print" style="padding-top:24px">
+    <a href="portal.html" data-en="Back to portal">العودة للبوابة</a>
+    <button type="button" class="btn btn-primary" onclick="window.print()" data-en="Print / save PDF">طباعة / حفظ PDF</button>
+  </div>
+  <p id="msg" class="muted no-print" style="padding-top:16px" data-en="Loading…">جارٍ التحميل…</p>
+  <div class="cards" id="cards"></div>
+</main>
+<script src="assets/vendor/qrcode.js"></script>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/common.js"></script>
+<script src="assets/js/store.js"></script>
+<script>
+(function () {
+  const SIG = window.SIG, $ = SIG.$; let list = [];
+  const paint = () => { $('#cards').innerHTML = list.map(SIG.memberCard).join(''); };
+  document.addEventListener('sig:ready', async () => {
+    try {
+      const user = await SIG.store.currentUser();
+      if (SIG.store.isFirebase && !user) { $('#msg').textContent = SIG.t('سجّل دخولك أولاً.', 'Please sign in first.'); return; }
+      if (SIG.param('all')) list = await SIG.store.list('members');
+      else { const m = await SIG.store.member(SIG.param('uid') || (user && user.uid)); if (m) list = [m]; }
+      $('#msg').textContent = list.length ? '' : SIG.t('لا توجد بطاقات.', 'No cards found.');
+      paint();
+    } catch (e) { $('#msg').textContent = SIG.store.authError(e); }
+  });
+  document.addEventListener('sig:lang', paint);
+})();
+</script>
+</body>
+</html>

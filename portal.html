@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title data-en="Member portal — SIG">بوابة العضو — SIG</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#C8102E">
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-page="portal" class="soft" data-demo-note>
+<div id="site-header"></div>
+<main class="container" style="padding-top:36px">
+  <p id="loading" class="muted" data-en="Loading…">جارٍ التحميل…</p>
+
+  <section id="auth-view" class="hidden" style="max-width:480px;margin:24px auto 0">
+    <form id="f-login" class="panel panel-pad form" novalidate>
+      <h1 style="font-size:28px" data-en="Member login">دخول الأعضاء</h1>
+      <p class="muted" data-en="Sign in to see your card, registrations, certificates and abstracts.">ادخل لعرض بطاقتك وتسجيلاتك وشهاداتك وملخصاتك.</p>
+      <label class="field"><span data-en="Email">البريد الإلكتروني</span><input name="email" type="email" required autocomplete="email" dir="ltr"></label>
+      <label class="field"><span data-en="Password">كلمة المرور</span><input name="password" type="password" autocomplete="current-password" dir="ltr"></label>
+      <div class="form-msg hidden" role="alert"></div>
+      <button type="submit" class="btn btn-primary btn-block" data-en="Sign in">دخول</button>
+      <div class="row between" style="font-size:14.5px">
+        <button type="button" id="forgot" style="background:none;border:0;color:var(--red-d);cursor:pointer;padding:8px 0;font-weight:600" data-en="Forgot password?">نسيت كلمة المرور؟</button>
+        <a href="membership.html" style="font-weight:600" data-en="Join for free">انضم مجاناً</a>
+      </div>
+    </form>
+  </section>
+
+  <section id="portal-view" class="hidden stack" style="--gap:24px">
+    <div class="row between" style="align-items:flex-end">
+      <div class="stack" style="--gap:4px"><span class="muted" style="font-size:14px" data-en="Member portal">بوابة العضو</span><h1 style="font-size:32px" id="hello"></h1></div>
+    </div>
+    <div class="split" style="gap:24px">
+      <nav class="side-nav" style="flex:1 1 240px;min-width:0" aria-label="أقسام البوابة" data-en-aria="Portal sections">
+        <button type="button" data-sec="card" aria-current="page" data-en="My card">بطاقتي</button>
+        <button type="button" data-sec="regs" data-en="My registrations">تسجيلاتي</button>
+        <button type="button" data-sec="certs" data-en="My certificates">شهاداتي</button>
+        <button type="button" data-sec="abs" data-en="My abstracts">ملخصاتي البحثية</button>
+        <button type="button" data-sec="profile" data-en="Profile">الملف الشخصي</button>
+        <hr>
+        <a href="admin.html" id="admin-link" class="hidden" style="color:var(--red-d);font-weight:600" data-en="Dashboard (admins)">لوحة التحكم (للمشرفين)</a>
+        <button type="button" id="signout" data-en="Sign out">تسجيل الخروج</button>
+      </nav>
+      <div class="stack" style="flex:999 1 640px;min-width:0;--gap:18px" id="sections">
+        <section data-panel="card" class="panel panel-pad row" style="--gap:28px"></section>
+        <section data-panel="regs" class="panel panel-pad stack hidden"></section>
+        <section data-panel="certs" class="panel panel-pad stack hidden"></section>
+        <section data-panel="abs" class="panel panel-pad stack hidden"></section>
+        <section data-panel="profile" class="panel panel-pad stack hidden"></section>
+      </div>
+    </div>
+  </section>
+</main>
+<div id="site-footer"></div>
+<script src="assets/vendor/qrcode.js"></script>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/common.js"></script>
+<script src="assets/js/store.js"></script>
+<script src="assets/js/portal.js"></script>
+</body>
+</html>

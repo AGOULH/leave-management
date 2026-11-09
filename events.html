@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title data-en="Events — SIG">الفعاليات — SIG</title>
+<meta name="description" content="فعاليات المجموعة السعودية لعلم الدم المناعي: الملتقى السنوي والاجتماعات الدورية والورش، والتسجيل المجاني وتقديم الملخصات وأرشيف الفعاليات.">
+<meta name="theme-color" content="#C8102E">
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-page="events" data-demo-note>
+<div id="site-header"></div>
+<main>
+  <section class="page-hero"><div class="container">
+    <span class="crumb" data-en="Home / Events">الرئيسية / الفعاليات</span>
+    <h1 data-en="Scientific events">الفعاليات العلمية</h1>
+    <p data-en="Annual meetings, regular group meetings and specialised workshops — registration is free and certificates are issued online.">ملتقيات سنوية، واجتماعات دورية، وورش متخصصة — التسجيل فيها مجاني، وشهادات الحضور تصدر إلكترونياً.</p>
+    <div class="seg" role="group" aria-label="عرض الفعاليات" data-en-aria="Events view" style="margin-top:8px">
+      <button type="button" data-view="upcoming" aria-pressed="true" data-en="Upcoming">القادمة</button>
+      <button type="button" data-view="archive" aria-pressed="false" data-en="Archive">الأرشيف</button>
+    </div>
+  </div></section>
+
+  <div id="view-upcoming" class="container stack" style="--gap:40px;padding-top:48px">
+    <div class="grid" style="--min:320px;--gap:16px" id="formats"></div>
+
+    <div class="split">
+      <article class="main panel" style="overflow:hidden">
+        <div style="background:var(--rose100);padding:30px;display:flex;flex-direction:column;gap:14px;border-bottom:1px solid var(--rose200)">
+          <div class="row" style="--gap:8px"><span class="tag tag-red" data-en="Annual Meeting">الملتقى السنوي</span><span class="tag tag-green" data-en="Free registration">التسجيل مجاني</span></div>
+          <h2 style="font-size:clamp(24px,2.4vw,30px)" id="ev-title">…</h2>
+          <div class="row" style="--gap:10px 26px;font-size:15px;color:#4A4043">
+            <span class="row" style="--gap:8px;color:inherit"><span id="i-cal"></span><span id="ev-date"></span></span>
+            <span class="row" style="--gap:8px"><span id="i-pin"></span><span id="ev-venue"></span></span>
+            <span class="row" style="--gap:8px"><span id="i-cert"></span><span id="ev-cme"></span></span>
+          </div>
+          <div class="row" style="--gap:8px">
+            <a class="btn btn-outline btn-sm" id="cal-google" href="#" target="_blank" rel="noopener" data-en="Google Calendar">تقويم Google</a>
+            <button type="button" class="btn btn-outline btn-sm" id="cal-ics" data-en="Apple / Outlook (.ics)">تقويم Apple / Outlook</button>
+          </div>
+        </div>
+        <div class="tabs" role="tablist" aria-label="تفاصيل الفعالية" data-en-aria="Event details">
+          <button type="button" role="tab" data-tab="program" aria-selected="true" data-en="Programme">البرنامج العلمي</button>
+          <button type="button" role="tab" data-tab="speakers" aria-selected="false" data-en="Speakers">المتحدثون</button>
+          <button type="button" role="tab" data-tab="committees" aria-selected="false" data-en="Committees">اللجان</button>
+          <button type="button" role="tab" data-tab="sponsors" aria-selected="false" data-en="Organisers &amp; sponsors">المنظمون والرعاة</button>
+          <button type="button" role="tab" data-tab="cme" aria-selected="false" data-en="Accreditation">الاعتماد</button>
+          <button type="button" role="tab" data-tab="stay" aria-selected="false" data-en="Hotels">الإقامة</button>
+        </div>
+        <div class="tab-panel" role="tabpanel">
+          <div data-panel="program" class="stack" style="--gap:0">
+            <div class="row" style="flex-wrap:nowrap;align-items:flex-start;padding:14px 0;border-bottom:1px dashed var(--line);--gap:16px"><b style="flex:0 0 110px;color:var(--red-d)" data-en="[Time]">[الوقت]</b><div><strong data-en="Registration &amp; welcome">التسجيل والاستقبال</strong><div class="muted" style="font-size:14px" data-en="QR check-in at the door">مسح رمز QR عند البوابة</div></div></div>
+            <div class="row" style="flex-wrap:nowrap;align-items:flex-start;padding:14px 0;border-bottom:1px dashed var(--line);--gap:16px"><b style="flex:0 0 110px;color:var(--red-d)" data-en="[Time]">[الوقت]</b><div><strong data-en="Session 1: [Red cell serology topic]">الجلسة الأولى: [موضوع في سيرولوجيا الكريات الحمراء]</strong><div class="muted" style="font-size:14px" data-en="[Speaker name]">[اسم المتحدث]</div></div></div>
+            <div class="row" style="flex-wrap:nowrap;align-items:flex-start;padding:14px 0;border-bottom:1px dashed var(--line);--gap:16px"><b style="flex:0 0 110px;color:var(--red-d)" data-en="[Time]">[الوقت]</b><div><strong data-en="Session 2: [Platelet &amp; leucocyte topic]">الجلسة الثانية: [موضوع في مناعة الصفائح والكريات البيضاء]</strong><div class="muted" style="font-size:14px" data-en="[Speaker name]">[اسم المتحدث]</div></div></div>
+            <div class="row" style="flex-wrap:nowrap;align-items:flex-start;padding:14px 0;border-bottom:1px dashed var(--line);--gap:16px"><b style="flex:0 0 110px;color:var(--red-d)" data-en="[Time]">[الوقت]</b><div><strong data-en="Accepted abstracts (oral &amp; posters)">عرض الملخصات المقبولة (شفهي وملصقات)</strong><div class="muted" style="font-size:14px" data-en="Scientific committee">اللجنة العلمية</div></div></div>
+            <div class="row" style="flex-wrap:nowrap;align-items:flex-start;padding:14px 0;--gap:16px"><b style="flex:0 0 110px;color:var(--red-d)" data-en="[Time]">[الوقت]</b><div><strong data-en="Closing &amp; certificates">الختام وإصدار شهادات الحضور</strong><div class="muted" style="font-size:14px" data-en="Certificates sent online">تُرسل الشهادات إلكترونياً</div></div></div>
+            <p class="muted" style="font-size:13.5px;padding-top:10px" data-en="The final programme is published once approved by the scientific committee.">يُنشر البرنامج النهائي بعد اعتماده من اللجنة العلمية.</p>
+          </div>
+          <div data-panel="speakers" class="grid hidden" style="--min:200px;--gap:14px">
+            <div class="card" style="align-items:center;text-align:center"><span class="avatar">?</span><strong data-en="[Speaker name]">[اسم المتحدث]</strong><span class="muted" style="font-size:13.5px" data-en="[Institution]">[الجهة]</span></div>
+            <div class="card" style="align-items:center;text-align:center"><span class="avatar">?</span><strong data-en="[Speaker name]">[اسم المتحدث]</strong><span class="muted" style="font-size:13.5px" data-en="[Institution]">[الجهة]</span></div>
+            <div class="card" style="align-items:center;text-align:center"><span class="avatar">?</span><strong data-en="[Speaker name]">[اسم المتحدث]</strong><span class="muted" style="font-size:13.5px" data-en="[Institution]">[الجهة]</span></div>
+          </div>
+          <div data-panel="committees" class="grid hidden" style="--min:260px;--gap:14px">
+            <div class="card card-rose"><strong data-en="Organising committee">اللجنة المنظمة</strong><p data-en="[Names to be announced]">[الأسماء تُعلن لاحقاً]</p></div>
+            <div class="card card-rose"><strong data-en="Scientific committee">اللجنة العلمية</strong><p data-en="[Names to be announced]">[الأسماء تُعلن لاحقاً]</p></div>
+          </div>
+          <div data-panel="sponsors" class="stack hidden" style="--gap:16px">
+            <strong data-en="Organisers">المنظمون</strong>
+            <div class="row" style="--gap:10px"><span class="tag tag-outline" style="padding:10px 16px;font-size:14px" data-en="Saudi Immunohaematology Group">المجموعة السعودية لعلم الدم المناعي</span><span class="tag tag-outline" style="padding:10px 16px;font-size:14px" data-en="Saudi Society of Transfusion Medicine">الجمعية السعودية لطب نقل الدم</span></div>
+            <strong data-en="Sponsors">الرعاة</strong>
+            <div class="grid" style="--min:160px;--gap:10px"><span class="empty" style="padding:24px" data-en="[Sponsor logo]">[شعار الراعي]</span><span class="empty" style="padding:24px" data-en="[Sponsor logo]">[شعار الراعي]</span><span class="empty" style="padding:24px" data-en="[Sponsor logo]">[شعار الراعي]</span></div>
+          </div>
+          <div data-panel="cme" class="stack hidden" style="--gap:12px;font-size:15.5px;line-height:1.8">
+            <div class="row card-rose" style="border-radius:16px;padding:18px 20px;--gap:14px"><b style="font-size:30px;color:var(--red)" id="cme-hours">[—]</b><span data-en="CME hours">ساعة تعليم طبي مستمر</span></div>
+            <p data-en="Accredited by the Saudi Commission for Health Specialties — accreditation no. [—]">الجهة المعتمِدة: الهيئة السعودية للتخصصات الصحية — رقم الاعتماد: [—]</p>
+            <p class="muted" data-en="Your certificate appears in the member portal after check-in at the event.">تظهر الشهادة في بوابة العضو بعد تسجيل الحضور عند بوابة الفعالية.</p>
+          </div>
+          <div data-panel="stay" class="stack hidden" style="--gap:12px">
+            <div class="card"><strong data-en="[Recommended hotel]">[الفندق المقترح]</strong><p data-en="[Special rate for attendees — if available]">[سعر خاص للمشاركين — إن وُجد]</p></div>
+            <p class="muted" data-en="If the event is held online, the streaming link appears here instead.">إذا عُقدت الفعالية عن بُعد يظهر هنا رابط البث بدلاً من الإقامة.</p>
+          </div>
+        </div>
+      </article>
+
+      <aside class="side panel panel-pad stack" id="register" style="--gap:18px;border:1.5px solid var(--rose200);scroll-margin-top:16px">
+        <div class="seg" role="group" aria-label="نوع التسجيل" data-en-aria="Registration type" style="align-self:stretch;display:grid;grid-template-columns:1fr 1fr;background:var(--rose50)">
+          <button type="button" data-mode="attend" aria-pressed="true" data-en="Attend">تسجيل حضور</button>
+          <button type="button" data-mode="abstract" aria-pressed="false" data-en="Abstract">تقديم ملخص</button>
+        </div>
+
+        <form id="f-attend" class="form" novalidate>
+          <h3 style="font-size:19px" data-en="Register for free">سجّل حضورك مجاناً</h3>
+          <label class="field"><span data-en="Full name">الاسم الكامل</span><input name="name" required autocomplete="name"></label>
+          <label class="field"><span data-en="Email">البريد الإلكتروني</span><input name="email" type="email" required autocomplete="email" dir="ltr"></label>
+          <label class="field"><span data-en="Mobile number">رقم الجوال</span><input name="mobile" type="tel" required inputmode="tel" pattern="^(\+?966|0)?5[0-9]{8}$" placeholder="05XXXXXXXX" dir="ltr"></label>
+          <label class="field"><span data-en="Professional category">الفئة المهنية</span>
+            <select name="category" required>
+              <option value="" data-en="Select">اختر</option>
+              <option value="tech" data-en="Technologist / technician">أخصائي / فني مختبر</option>
+              <option value="phys" data-en="Physician">طبيب</option>
+              <option value="nurse" data-en="Nurse">تمريض</option>
+              <option value="student" data-en="Student">طالب</option>
+              <option value="other" data-en="Other">أخرى</option>
+            </select>
+          </label>
+          <label class="field"><span data-en="SCFHS registration no. (optional)">رقم التصنيف المهني (اختياري)</span><input name="schs" dir="ltr"></label>
+          <div class="form-msg err hidden" role="alert"></div>
+          <button type="submit" class="btn btn-primary btn-block" data-en="Confirm registration">تأكيد التسجيل</button>
+          <span class="muted" style="font-size:13px;text-align:center" data-en="No fees — your QR ticket appears right away.">لا رسوم — تظهر تذكرتك برمز QR فوراً.</span>
+        </form>
+
+        <div id="ticket-box" class="stack hidden" style="--gap:14px;align-items:center;text-align:center"></div>
+
+        <form id="f-abstract" class="form hidden" novalidate>
+          <h3 style="font-size:19px" data-en="Submit an abstract">قدّم ملخصاً بحثياً</h3>
+          <label class="field"><span data-en="Presenting author name">اسم الباحث المقدِّم</span><input name="name" required></label>
+          <label class="field"><span data-en="Email">البريد الإلكتروني</span><input name="email" type="email" required dir="ltr"></label>
+          <label class="field"><span data-en="Title">عنوان البحث</span><input name="title" required></label>
+          <label class="field"><span data-en="Authors &amp; affiliations">المؤلفون وجهاتهم</span><input name="authors" required></label>
+          <div class="grid" style="--min:140px;--gap:10px">
+            <label class="field"><span data-en="Track">المجال</span>
+              <select name="track" required>
+                <option value="rc" data-en="Red cells">الكريات الحمراء</option>
+                <option value="pl" data-en="Platelets &amp; WBC">الصفائح والبيضاء</option>
+                <option value="qa" data-en="Quality &amp; safety">الجودة والسلامة</option>
+                <option value="other" data-en="Other">أخرى</option>
+              </select>
+            </label>
+            <label class="field"><span data-en="Format">نوع العرض</span>
+              <select name="format"><option value="oral" data-en="Oral">عرض شفهي</option><option value="poster" data-en="Poster">ملصق</option></select>
+            </label>
+          </div>
+          <label class="field"><span data-en="Abstract (up to 300 words)">الملخص (حتى 300 كلمة)</span><textarea name="body" required rows="6" maxlength="2400"></textarea></label>
+          <label class="field"><span data-en="File link (optional — Google Drive / OneDrive)">رابط الملف (اختياري — Google Drive / OneDrive)</span><input name="link" type="url" dir="ltr" placeholder="https://"></label>
+          <div class="form-msg err hidden" role="alert"></div>
+          <button type="submit" class="btn btn-primary btn-block" data-en="Submit abstract">إرسال الملخص</button>
+        </form>
+
+        <div id="abs-box" class="stack hidden" style="--gap:14px"></div>
+      </aside>
+    </div>
+  </div>
+
+  <div id="view-archive" class="container stack hidden" style="--gap:26px;padding-top:44px">
+    <div class="row between">
+      <h2 style="font-size:28px" id="archive-title"></h2>
+      <div class="chips" role="group" id="archive-filters"></div>
+    </div>
+    <ol class="timeline" id="archive-list"></ol>
+  </div>
+</main>
+<div id="site-footer"></div>
+<script src="assets/vendor/qrcode.js"></script>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/common.js"></script>
+<script src="assets/js/store.js"></script>
+<script src="assets/js/events.js"></script>
+</body>
+</html>

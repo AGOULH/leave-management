@@ -1,0 +1,46 @@
+rules_version = '2';
+// قواعد أمان Firestore لموقع المجموعة السعودية لعلم الدم المناعي (SIG)
+// الصقها في: Firebase Console › Firestore Database › Rules › Publish
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function isAdmin() { return signedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid)); }
+    function myEmail() { return signedIn() && request.auth.token.email != null ? request.auth.token.email : ''; }
+
+    // محتوى عام يقرؤه الجميع ويعدّله المشرفون فقط
+    match /settings/{id}     { allow read: if true; allow write: if isAdmin(); }
+    match /news/{id}         { allow read: if true; allow write: if isAdmin(); }
+    match /events/{id}       { allow read: if true; allow write: if isAdmin(); }
+    match /publications/{id} { allow read: if true; allow write: if isAdmin(); }
+
+    // التسجيل في الفعاليات: أي زائر يسجّل، ويقرأ العضو تسجيلاته ببريده، والمشرف يدير الكل
+    match /registrations/{id} {
+      allow create: if request.resource.data.keys().hasAll(['name', 'email', 'ticket'])
+                    && request.resource.data.checkedIn == false
+                    && request.resource.data.certIssued == false;
+      allow read: if isAdmin() || (signedIn() && resource.data.email == myEmail());
+      allow update, delete: if isAdmin();
+    }
+
+    // الملخصات البحثية
+    match /abstracts/{id} {
+      allow create: if request.resource.data.status == 'review';
+      allow read: if isAdmin() || (signedIn() && resource.data.email == myEmail());
+      allow update, delete: if isAdmin();
+    }
+
+    // ملفات الأعضاء: كل عضو يملك ملفه، والمشرف يقرأ الجميع
+    match /members/{uid} {
+      allow create: if signedIn() && request.auth.uid == uid;
+      allow read, update: if isAdmin() || (signedIn() && request.auth.uid == uid);
+      allow delete: if isAdmin();
+    }
+
+    // رسائل التواصل وطلبات التنبيه
+    match /messages/{id} { allow create: if true; allow read, update, delete: if isAdmin(); }
+    match /notify/{id}   { allow create: if true; allow read, delete: if isAdmin(); }
+
+    // المشرفون: يُضافون يدوياً من الكونسول فقط
+    match /admins/{uid} { allow read: if signedIn() && request.auth.uid == uid; allow write: if false; }
+  }
+}
